@@ -4,9 +4,7 @@ module Gearman
   class Client
 
     PACK = 'NN'
-    UNPACK = 'a4NN'
     MAGIC = "\0REQ"
-    HEADER_LENGTH = 12
 
     def echo(data)
       packet_type = 16
@@ -20,35 +18,54 @@ module Gearman
         abort 'Could not open connection to gearman server'
       end
 
-      header = ''
-      body = ''
-
       begin
         _, write_select = IO::select([], [socket])
         if write_socket = write_select[0]
           write_socket.write(request)
         end
 
-        until header.size == HEADER_LENGTH do
-          read_select, _ = IO::select([socket])
-          if read_socket = read_select[0]
-            header += read_socket.readpartial(12)
-          end
-        end
-
-        magic, type, length = header.unpack(UNPACK)
-
-        until body.size == length do
-          read_select, _ = IO::select([socket])
-          if read_socket = read_select[0]
-            body += socket.readpartial(length - body.size)
-          end
-        end
+        ReadsGearmanMessages.from(socket)
       ensure
         socket.close
       end
+    end
 
-      body
+  end
+
+  class ReadsGearmanMessages
+
+    UNPACK = 'a4NN'
+
+    attr_reader :body
+
+    def self.from(socket)
+      reader = new(socket)
+      reader.read
+      reader.body
+    end
+
+    def initialize(socket)
+      @socket = socket
+      @header = ''
+      @body = ''
+    end
+
+    def read(header_length = 12)
+      until @header.size == header_length do
+        read_select, _ = IO::select([@socket])
+        if read_socket = read_select[0]
+          @header << read_socket.readpartial(header_length - @header.size)
+        end
+      end
+
+      magic, type, body_length = @header.unpack(UNPACK)
+
+      until @body.size == body_length do
+        read_select, _ = IO::select([@socket])
+        if read_socket = read_select[0]
+          @body << read_socket.readpartial(body_length - @body.size)
+        end
+      end
     end
 
   end
