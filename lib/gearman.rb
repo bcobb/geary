@@ -8,23 +8,15 @@ module Gearman
 
     def echo(data)
       packet_type = 16
-      packet_meta = [packet_type, data.size].pack(PACK)
+      packet_meta = [packet_type, data.length].pack(PACK)
 
-      request = [MAGIC, packet_meta, data].join
+      data = [MAGIC, packet_meta, data].join
 
-      begin
-        socket = TCPSocket.new('localhost', '4730')
-      rescue => e
-        abort 'Could not open connection to gearman server'
-      end
+      socket = Socket.new('localhost', '4730')
+      server = Server.new(socket)
 
       begin
-        _, write_select = IO::select([], [socket])
-        if write_socket = write_select[0]
-          write_socket.write(request)
-        end
-
-        ReadsGearmanMessages.from(socket)
+        server.request(data)
       ensure
         socket.close
       end
@@ -32,38 +24,62 @@ module Gearman
 
   end
 
-  class ReadsGearmanMessages
+  class Socket
 
-    UNPACK = 'a4NN'
-
-    attr_reader :body
-
-    def self.from(socket)
-      new(socket).tap(&:read).body
+    def initialize(server, port)
+      begin
+        @socket = ::TCPSocket.new(server, port)
+      rescue => e
+        abort 'Could not open connection to gearman server'
+      end
     end
+
+    def write(data)
+      _, write_select = ::IO::select([], [@socket])
+      if write_socket = write_select[0]
+        write_socket.write(data)
+      end
+    end
+
+    def read(length)
+      response = ''
+      until response.length == length do
+        read_select, _ = ::IO::select([@socket])
+        if read_socket = read_select[0]
+          response << read_socket.readpartial(length - response.length)
+        end
+      end
+      response
+    end
+
+    def close
+      @socket.close
+    end
+
+  end
+
+  class Server
+
+    MAGIC_TYPE_LENGTH = 'a4NN'
 
     def initialize(socket)
       @socket = socket
-      @header = ''
-      @body = ''
     end
 
-    def read(header_length = 12)
-      until @header.size == header_length do
-        read_select, _ = IO::select([@socket])
-        if read_socket = read_select[0]
-          @header << read_socket.readpartial(header_length - @header.size)
-        end
-      end
+    def request(data)
+      @socket.write data
 
-      magic, type, body_length = @header.unpack(UNPACK)
+      response_body
+    end
 
-      until @body.size == body_length do
-        read_select, _ = IO::select([@socket])
-        if read_socket = read_select[0]
-          @body << read_socket.readpartial(body_length - @body.size)
-        end
-      end
+    private
+
+    def response_body
+      @socket.read(response_headers.last)
+    end
+
+    def response_headers
+      @socket.read(12).unpack(MAGIC_TYPE_LENGTH)
     end
 
   end
