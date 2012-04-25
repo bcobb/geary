@@ -39,9 +39,7 @@ module Gearman
     attr_reader :body
 
     def self.from(socket)
-      reader = new(socket)
-      reader.read
-      reader.body
+      new(socket).tap(&:read).body
     end
 
     def initialize(socket)
