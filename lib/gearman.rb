@@ -5,12 +5,12 @@ module Gearman
 
     PACK = 'NN'
     UNPACK = 'a4NN'
+    MAGIC = "\0REQ"
 
     def echo(data)
-      echo_req_packet_type = 16
-      packet_magic = "\0REQ"
-      packet_meta = [echo_req_packet_type, data.size].pack(PACK)
-      echo_req_packet = [packet_magic, packet_meta, data].join
+      packet_type = 16
+      packet_meta = [packet_type, data.size].pack(PACK)
+      request = [MAGIC, packet_meta, data].join
 
       begin
         socket = TCPSocket.new('localhost', '4730')
@@ -24,7 +24,7 @@ module Gearman
       begin
         _, write_select = IO::select([], [socket])
         if write_socket = write_select[0]
-          write_socket.write(echo_req_packet)
+          write_socket.write(request)
         end
 
         while header.size < 12 do
