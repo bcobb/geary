@@ -6,10 +6,12 @@ module Gearman
     PACK = 'NN'
     UNPACK = 'a4NN'
     MAGIC = "\0REQ"
+    HEADER_LENGTH = 12
 
     def echo(data)
       packet_type = 16
       packet_meta = [packet_type, data.size].pack(PACK)
+
       request = [MAGIC, packet_meta, data].join
 
       begin
@@ -27,19 +29,19 @@ module Gearman
           write_socket.write(request)
         end
 
-        while header.size < 12 do
+        until header.size == HEADER_LENGTH do
           read_select, _ = IO::select([socket])
           if read_socket = read_select[0]
             header += read_socket.readpartial(12)
           end
         end
 
-        magic, type, size = header.unpack(UNPACK)
+        magic, type, length = header.unpack(UNPACK)
 
-        while body.size < size do
+        until body.size == length do
           read_select, _ = IO::select([socket])
           if read_socket = read_select[0]
-            body += socket.readpartial(size - body.size)
+            body += socket.readpartial(length - body.size)
           end
         end
       ensure
