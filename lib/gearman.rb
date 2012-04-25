@@ -8,13 +8,9 @@ module Gearman
 
     def echo(data)
       echo_req_packet_type = 16
-      echo_req_packet_magic = "\0REQ"
-      echo_req_packet_meta = [echo_req_packet_type, data.size].pack(PACK)
-      echo_req_packet = [
-        echo_req_packet_magic,
-        echo_req_packet_meta,
-        data
-      ].join
+      packet_magic = "\0REQ"
+      packet_meta = [echo_req_packet_type, data.size].pack(PACK)
+      echo_req_packet = [packet_magic, packet_meta, data].join
 
       begin
         socket = TCPSocket.new('localhost', '4730')
