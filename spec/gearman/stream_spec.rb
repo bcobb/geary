@@ -7,7 +7,7 @@ describe Gearman::Stream do
 
   subject { described_class.new(stream) }
 
-  after { stream.close && stream.unlink }
+  after { stream.close }
 
   it 'writes strings to IO streams' do
     subject.write('hello')
