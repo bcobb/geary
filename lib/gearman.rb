@@ -1,2 +1,2 @@
-require 'nestegg'
 require 'gearman/stream'
+require 'gearman/client'

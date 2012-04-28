@@ -20,14 +20,14 @@ module Gearman
 
     private
 
-    def on_writable(&block)
+    def on_writable
       _, write_select = ::IO::select([], [@stream])
       if write_stream = write_select[0]
         yield write_stream
       end
     end
 
-    def on_readable(&block)
+    def on_readable
       read_select, _ = ::IO::select([@stream])
       if read_stream = read_select[0]
         yield read_stream
