@@ -4,7 +4,7 @@ describe Gearman::Client do
 
   let(:server) { stub }
 
-  subject { Gearman::Client.new(server) }
+  subject { described_class.new(server) }
 
   it 'can tell the server to echo data' do
     request = Gearman::Request.new(16, 'data')
