@@ -1,30 +1,46 @@
 module Gearman
   class Client
 
-    def initialize
-      @stream = Stream.new(::TCPSocket.new('localhost', '4730'))
+    REQUESTS = {
+      :echo => 16,
+      :submit_job => 7,
+      :submit_job_high => 21,
+      :submit_job_low => 33,
+      :submit_job_bg => 18,
+      :submit_job_high_bg => 32,
+      :submit_job_low_bg => 34,
+      :submit_job_epoch => 36,
+      :get_status => 15,
+      :set_option => 26
+    }
+
+    def initialize(server)
+      @server = server
     end
 
-    def echo(data)
-      # request
-      request = "\0REQ" + [16, data.size].pack('NN') + data
-      @stream.write(request)
+    def self.can(name, args = [])
+      return if args.empty?
 
-      # response
-      header = @stream.read(12)
-      magic, type, length = header.unpack('a4NN')
-      @stream.read(length)
+      type = REQUESTS.fetch(name) { name }
+      class_eval %{
+        def #{name}(#{args.join(", ")})
+          request = Request.new(#{type}, #{args.join(", ")})
+          @server.send(request)
+        end
+      }
     end
+    private_class_method :can
 
-    def submit_job(function_name, job_id, data)
-      arguments = [function_name, job_id, data].join("\0")
-      request = "\0REQ" + [7, arguments.size].pack('NN') + arguments
-      @stream.write(request)
-
-      header = @stream.read(12)
-      magic, type, length = header.unpack('a4NN')
-      @stream.read(length)
-    end
+    can :echo, [:data]
+    can :submit_job, [:job, :job_id, :data]
+    can :submit_job_high, [:job, :job_id, :data]
+    can :submit_job_low, [:job, :job_id, :data]
+    can :submit_job_bg, [:job, :job_id, :data]
+    can :submit_job_high_bg, [:job, :job_id, :data]
+    can :submit_job_low_bg, [:job, :job_id, :data]
+    can :submit_job_epoch, [:job, :job_id, :epoch_time, :data]
+    can :get_status, [:job_handle]
+    can :set_option, [:option_name]
 
   end
 end
