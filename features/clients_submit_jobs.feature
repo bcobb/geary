@@ -23,3 +23,11 @@ Feature: Submit jobs in the foreground
 
     worker.reset_abilities
     """
+    And a file named "shit.rb" with:
+    """
+    client = Thread.new { puts 'client' }
+    worker = Thread.new { puts 'worker' }
+    """
+    When I run `ruby shit.rb`
+    Then the stdout should contain "client"
+    Then the stdout should contain "worker"

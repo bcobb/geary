@@ -4,12 +4,11 @@ module Gearman
     MAGIC = "\0REQ"
 
     def initialize(type, *arguments)
-      @body = arguments.join("\0")
-      @header = [type, @body.size].pack('NN')
+      @packet = Packet.new MAGIC, type, arguments
     end
 
     def to_s
-      "#{MAGIC}#{@header}#{@body}"
+      Packet.dump(@packet)
     end
 
     def ==(request)
