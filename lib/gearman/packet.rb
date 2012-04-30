@@ -1,12 +1,13 @@
 module Gearman
   class Packet
 
+    HEADER_LENGTH = 12
     HEADER_PACKING = 'a4NN'
     NULL_BYTE = "\0"
 
     def self.load(socket)
-      magic, type, body_length = socket.read(12).unpack(HEADER_PACKING)
-      arguments = socket.read(body_length).split(NULL_BYTE)
+      magic, type, rest = socket.read(HEADER_LENGTH).unpack(HEADER_PACKING)
+      arguments = socket.read(rest).split(NULL_BYTE)
 
       new(magic, type, arguments)
     end
