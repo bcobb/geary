@@ -1,17 +1,9 @@
 module Gearman
+
   class Request
+    extend Packet::Factory
 
     MAGIC = "\0REQ"
-
-    def self.type(map, *arguments)
-      map.each do |method, type|
-        instance_eval %{
-          def #{method}(#{arguments.join(", ")})
-            Request.new(#{type}, #{arguments.join(", ")})
-          end
-        }
-      end
-    end
 
     type :echo => 16, :data
     type :submit_job => 7, :function_name, :unique_id, :data
@@ -28,8 +20,8 @@ module Gearman
       @packet = Packet.new MAGIC, type, arguments
     end
 
-    def to_s
-      Packet.dump(@packet)
+    def to_s(serializer = Packet)
+      serializer.dump(@packet)
     end
 
     def ==(request)
