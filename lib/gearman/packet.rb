@@ -35,30 +35,5 @@ module Gearman
       send attr
     end
 
-    module Factory
-
-      def type(mapping, *arguments)
-        factories = mapping.map do |method, type|
-          %{
-            def #{method}(#{arguments.join(", ")})
-              new(#{type}, #{arguments.join(", ")})
-            end
-          }
-        end
-
-        queries = mapping.map do |method, type|
-          %{
-            def #{method}?
-              @packet.type.to_s == '#{type}' && @packet.request?
-            end
-          }
-        end
-
-        instance_eval methods.join
-        class_eval queries.join
-      end
-
-    end
-
   end
 end

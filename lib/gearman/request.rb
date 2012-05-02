@@ -1,20 +1,37 @@
 module Gearman
 
   class Request
-    extend Packet::Factory
+
+    module Factory
+
+      def type(mapping, *arguments)
+        factories = mapping.map do |type, method|
+          %{
+            def #{method}(#{arguments.join(", ")})
+              new(#{type}, #{arguments.join(", ")})
+            end
+          }
+        end
+
+        instance_eval factories.join
+      end
+
+    end
+
+    extend Factory
 
     MAGIC = "\0REQ"
 
-    type :echo => 16, :data
-    type :submit_job => 7, :function_name, :unique_id, :data
-    type :submit_job_high => 21, :function_name, :unique_id, :data
-    type :submit_job_low => 33, :function_name, :unique_id, :data
-    type :submit_job_bg => 18, :function_name, :unique_id, :data
-    type :submit_job_high_bg => 32, :function_name, :unique_id, :data
-    type :submit_job_low_bg => 34, :function_name, :unique_id, :data
-    type :submit_job_epoch => 36, :function_name, :unique_id, :data
-    type :get_status => 36, :job_handle
-    type :option => 26, :option_name
+    type 16 => :echo, :data
+    type 7 => :submit_job, :function_name, :unique_id, :data
+    type 21 => :submit_job_high, :function_name, :unique_id, :data
+    type 33 => :submit_job_low, :function_name, :unique_id, :data
+    type 18 => :submit_job_bg, :function_name, :unique_id, :data
+    type 32 => :submit_job_high_bg, :function_name, :unique_id, :data
+    type 34 => :submit_job_low_bg, :function_name, :unique_id, :data
+    type 36 => :submit_job_epoch, :function_name, :unique_id, :data
+    type 36 => :get_status, :job_handle
+    type 26 => :option, :option_name
 
     def initialize(type, *arguments)
       @packet = Packet.new MAGIC, type, arguments
