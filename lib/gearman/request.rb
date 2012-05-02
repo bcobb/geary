@@ -4,25 +4,22 @@ module Gearman
 
     module Factory
 
-      def type(mapping, *arguments)
-        factories = mapping.map do |type, method|
-          %{
-            def #{method}(#{arguments.join(", ")})
-              new(#{type}, #{arguments.join(", ")})
-            end
-          }
-        end
+      def type(number, name, *arguments)
+        # XXX: raise ArgumentError if redefining a factory
+        factory = %{
+          def #{name}(#{arguments.join(", ")})
+            new(#{number}, #{arguments.join(", ")})
+          end
+        }
 
-        queries = mapping.map do |type, method|
-          %{
-            def #{method}?
-              @packet.type.to_s == '#{type}' && @packet.magic == Request::MAGIC
-            end
-          }
-        end
+        query = %{
+          def #{name}?
+            @packet.type.to_s == '#{number}' && @packet.magic == Request::MAGIC
+          end
+        }
 
-        instance_eval factories.join
-        class_eval queries.join
+        instance_eval factory
+        class_eval query
       end
 
     end
@@ -31,16 +28,18 @@ module Gearman
 
     MAGIC = "\0REQ"
 
-    type({16 => :echo}, [:data])
-#    type 7 => :submit_job, :function_name, :unique_id, :data
-#    type 21 => :submit_job_high, :function_name, :unique_id, :data
-#    type 33 => :submit_job_low, :function_name, :unique_id, :data
-#    type 18 => :submit_job_bg, :function_name, :unique_id, :data
-#    type 32 => :submit_job_high_bg, :function_name, :unique_id, :data
-#    type 34 => :submit_job_low_bg, :function_name, :unique_id, :data
-#    type 36 => :submit_job_epoch, :function_name, :unique_id, :data
-#    type 36 => :get_status, :job_handle
-#    type 26 => :option, :option_name
+    type 16, :echo_req, :data
+    type 7, :submit_job, :function_name, :unique_id, :data
+    type 21, :submit_job_high, :function_name, :unique_id, :data
+    type 33, :submit_job_low, :function_name, :unique_id, :data
+    type 18, :submit_job_bg, :function_name, :unique_id, :data
+    type 32, :submit_job_high_bg, :function_name, :unique_id, :data
+    type 34, :submit_job_low_bg, :function_name, :unique_id, :data
+    type 35, :submit_job_sched, :function_name, :unique_id, :minute, :hour,
+             :mday, :month, :wday, :data
+    type 36, :submit_job_epoch, :function_name, :unique_id, :epoch_time, :data
+    type 15, :get_status, :job_handle
+    type 26, :option_req, :option_name
 
     def initialize(type, *arguments)
       @packet = Packet.new MAGIC, type, arguments
