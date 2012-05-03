@@ -13,7 +13,7 @@ describe Gearman::Request do
     :submit_job_low => 33,
     :submit_job_low_bg => 34,
     :submit_job_high => 21,
-    :submit_job_high_bg => 32 
+    :submit_job_high_bg => 32
   }.each do |submit_job_type, number|
 
     it "can create #{submit_job_type} requests" do

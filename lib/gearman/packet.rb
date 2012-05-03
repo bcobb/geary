@@ -27,10 +27,6 @@ module Gearman
       @arguments = arguments
     end
 
-    def request?
-      @magic == Gearman::Request::MAGIC
-    end
-
     def [](attr)
       send attr
     end

@@ -1,56 +1,100 @@
 module Gearman
 
-  class Request
+  module Request
 
-    module Factory
+    MAGIC = "\0REQ"
 
-      def type(number, name, *arguments)
-        # XXX: raise ArgumentError if redefining a factory
-        factory = %{
-          def #{name}(#{arguments.join(", ")})
-            new(#{number}, #{arguments.join(", ")})
-          end
-        }
+    class EchoReq
 
-        query = %{
-          def #{name}?
-            @packet.type.to_s == '#{number}' && @packet.magic == Request::MAGIC
-          end
-        }
-
-        instance_eval factory
-        class_eval query
+      def initialize(data)
+        @request = Request.new(16, data)
       end
 
     end
 
-    extend Factory
+    class SubmitJob
 
-    MAGIC = "\0REQ"
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(7, function_name, unique_id, data)
+      end
 
-    type 16, :echo_req, :data
-    type 7, :submit_job, :function_name, :unique_id, :data
-    type 21, :submit_job_high, :function_name, :unique_id, :data
-    type 33, :submit_job_low, :function_name, :unique_id, :data
-    type 18, :submit_job_bg, :function_name, :unique_id, :data
-    type 32, :submit_job_high_bg, :function_name, :unique_id, :data
-    type 34, :submit_job_low_bg, :function_name, :unique_id, :data
-    type 35, :submit_job_sched, :function_name, :unique_id, :minute, :hour,
-             :mday, :month, :wday, :data
-    type 36, :submit_job_epoch, :function_name, :unique_id, :epoch_time, :data
-    type 15, :get_status, :job_handle
-    type 26, :option_req, :option_name
+    end
+
+    class SubmitJobHigh
+
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(21, function_name, unique_id, data)
+      end
+
+    end
+
+    class SubmitJobLow
+
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(33, function_name, unique_id, data)
+      end
+
+    end
+
+    class SubmitJobBg
+
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(18, function_name, unique_id, data)
+      end
+
+    end
+
+    class SubmitJobHighBg
+
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(32, function_name, unique_id, data)
+      end
+
+    end
+
+    class SubmitJobLowBg
+
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(34, function_name, unique_id, data)
+      end
+
+    end
+
+    class SubmitJobSched
+
+      def initialize(function_name, unique_id, data)
+        @request = Request.new(35, function_name, unique_id, minute, hour, mday,
+                               month, wday, data)
+      end
+
+    end
+
+    class SubmitJobEpoch
+
+      def initialize(function_name, unique_id, epoch_time, data)
+        @request = Request.new(36, function_name, unique_id, epoch_time, data)
+      end
+
+    end
+
+    class GetStatus
+
+      def initialize(job_handle)
+        @request = Request.new(15, job_handle)
+      end
+
+    end
+
+    class OptionReq
+
+      def initialize(option_name)
+        @request = Request.new(26, option_name)
+      end
+
+    end
 
     def initialize(type, *arguments)
       @packet = Packet.new MAGIC, type, arguments
-    end
-
-    def to_s(serializer = Packet)
-      serializer.dump(@packet)
-    end
-
-    def ==(request)
-      request.to_s == to_s
     end
 
   end
