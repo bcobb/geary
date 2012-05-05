@@ -1,11 +1,10 @@
 module Gearman
   class Client
 
-    def echo(data, request_container = Request::EchoReq,
-             response_reader = Response::EchoRes)
+    def echo(data)
       Gearman.connect do |server|
-        server.request(request_container.new(data))
-        response_reader.read_response(server)
+        server.request(Request.echo_req(data))
+        response = server.response
       end
     end
 

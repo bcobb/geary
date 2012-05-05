@@ -18,20 +18,22 @@ module Gearman
       @stream.close
     end
 
+    def closed?
+      @stream.closed?
+    end
+
     private
 
     def on_writable
       _, write_select = ::IO::select([], [@stream])
-      if write_stream = write_select[0]
-        yield write_stream
-      end
+
+      yield write_select.first
     end
 
     def on_readable
       read_select, _ = ::IO::select([@stream])
-      if read_stream = read_select[0]
-        yield read_stream
-      end
+
+      yield read_select.first
     end
 
   end

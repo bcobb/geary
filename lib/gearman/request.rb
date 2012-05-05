@@ -93,6 +93,10 @@ module Gearman
 
     end
 
+    def self.echo_req(*data)
+      Packet.new MAGIC, 16, data
+    end
+
     def initialize(type, *arguments)
       @packet = Packet.new MAGIC, type, arguments
     end
