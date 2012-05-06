@@ -1,25 +1,17 @@
 module Gearman
 
-  class Request
-
+  module Request
     module Factory
 
       def type(number, name, *arguments)
         # XXX: raise ArgumentError if redefining a factory
         factory = %{
           def #{name}(#{arguments.join(", ")})
-            new(#{number}, #{arguments.join(", ")})
-          end
-        }
-
-        query = %{
-          def #{name}?
-            @packet.type.to_s == '#{number}' && @packet.magic == Request::MAGIC
+            Packet.new MAGIC, #{number}, [#{arguments.join(", ")}]
           end
         }
 
         instance_eval factory
-        class_eval query
       end
 
     end
@@ -40,18 +32,6 @@ module Gearman
     type 36, :submit_job_epoch, :function_name, :unique_id, :epoch_time, :data
     type 15, :get_status, :job_handle
     type 26, :option_req, :option_name
-
-    def initialize(type, *arguments)
-      @packet = Packet.new MAGIC, type, arguments
-    end
-
-    def to_s(serializer = Packet)
-      serializer.dump(@packet)
-    end
-
-    def ==(request)
-      request.to_s == to_s
-    end
 
   end
 end
