@@ -2,9 +2,13 @@ require 'gearman'
 
 describe Gearman::Request do
 
+  def request(type, *args)
+    Gearman::Packet.new("\0REQ", type, args)
+  end
+
   it 'can create echo_req requests' do
     request = described_class.echo_req 'data'
-    request.should == described_class.new(16, 'data')
+    request.should == request(16, 'data')
   end
 
   {
@@ -18,31 +22,31 @@ describe Gearman::Request do
 
     it "can create #{submit_job_type} requests" do
       request = described_class.send(submit_job_type, 'job', 'id', 'data')
-      request.should == described_class.new(number, 'job', 'id', 'data')
+      request.should == request(number, 'job', 'id', 'data')
     end
 
   end
 
   it 'can create submit_job_epoch requests' do
     request = described_class.submit_job_epoch('job', 'id', 'time', 'data')
-    request.should == described_class.new(36, 'job', 'id', 'time', 'data')
+    request.should == request(36, 'job', 'id', 'time', 'data')
   end
 
   it 'can create submit_job_sched requests' do
     request = described_class.submit_job_sched('job', 'id', 'min', 'hour',
                                                'mday', 'month', 'wday', 'data')
-    request.should == described_class.new(35, 'job', 'id', 'min', 'hour',
+    request.should == request(35, 'job', 'id', 'min', 'hour',
                                           'mday', 'month', 'wday', 'data')
   end
 
   it 'can create get_status requests' do
     request = described_class.get_status('job_handle')
-    request.should == described_class.new(15, 'job_handle')
+    request.should == request(15, 'job_handle')
   end
 
   it 'can create option_req requests' do
     request = described_class.option_req('option_name')
-    request.should == described_class.new(26, 'option_name')
+    request.should == request(26, 'option_name')
   end
 
 end

@@ -14,8 +14,7 @@ describe Gearman::Client do
   #           => if conversion fails, read as error
   #           => if can't read as error, raise
   it 'can echo data' do
-    request = stub(:echo_req)
-    subject.echo 'data', request
+    subject.echo('data').should == 'data'
   end
 
 end

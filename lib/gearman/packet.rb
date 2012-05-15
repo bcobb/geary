@@ -31,5 +31,11 @@ module Gearman
       send attr
     end
 
+    def ==(packet)
+      %w(magic type arguments).all? do |attr|
+        send(attr) == packet.send(attr)
+      end
+    end
+
   end
 end

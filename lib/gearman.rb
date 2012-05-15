@@ -9,6 +9,8 @@ require 'gearman/client'
 
 module Gearman
 
+  class ConnectionError < StandardError ; end
+
   def self.connect(&block)
     begin
       socket = ::TCPSocket.new('localhost', '4730')
@@ -20,11 +22,13 @@ module Gearman
       end
 
       block.call server_connection
+    rescue Errno::ECONNREFUSED => e
+      raise ConnectionError, "Could not connect to Gearman"
     rescue => e
       puts e.inspect
       puts "  #{e.backtrace.join("\n  ")}"
     ensure
-      server_connection.close_connection
+      server_connection.close_connection if server_connection
     end
   end
 
