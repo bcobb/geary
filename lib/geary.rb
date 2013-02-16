@@ -1,6 +1,6 @@
 require 'socket'
 
-require 'geary/metal'
+require 'geary/echo'
 require 'geary/version'
 
 module Geary
