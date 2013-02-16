@@ -14,16 +14,17 @@ module Geary
       _, writers = IO.select([], [socket])
       writers.first.write(header + body)
 
-      readers, _ = IO.select([socket])
-      header = readers.first.read(12).unpack('a4NN')
-      magic, type, message_length = header
-
-      readers, _ = IO.select([socket])
-      response = readers.first.read(message_length)
+      magic, type, message_length = read(12).unpack('a4NN')
+      response = read(message_length)
 
       if block_given?
         yield response
       end
+    end
+
+    def read(length)
+      readers, _ = IO.select([socket])
+      readers.first.read(length)
     end
 
   end
