@@ -2,18 +2,19 @@ require 'geary'
 
 module Geary
 
-  it 'can issue echo request' do
-    echoed_data = nil
-    socket = ::TCPSocket.new('localhost', 4730)
+  describe 'a client' do
 
-    echo = Echo.new(socket)
-    echo.call('data') do |response|
-      echoed_data = response
+    it 'can issue echo request' do
+      socket = ::TCPSocket.new('localhost', 4730)
+      translator = PacketTranslator.new
+      reader = PacketReader.new(:source => socket, :translator => translator)
+
+      echo = Echo.new(reader)
+      expect(echo.call('test!').data).to eql('test!')
+
+      socket.close
     end
 
-    socket.close
-
-    expect(echoed_data).to eql('data')
   end
 
 end

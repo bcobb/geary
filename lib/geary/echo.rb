@@ -1,30 +1,20 @@
 module Geary
   class Echo
 
-    attr_reader :socket
+    attr_reader :reader
 
-    def initialize(socket)
-      @socket = socket
+    def initialize(reader)
+      @reader = reader
     end
 
     def call(data)
       body = [data].join("\0")
       header = ["\0REQ", 16, body.size].pack('a4NN')
 
-      _, writers = IO.select([], [socket])
+      _, writers = IO.select([], [reader.source])
       writers.first.write(header + body)
 
-      magic, type, message_length = read(12).unpack('a4NN')
-      response = read(message_length)
-
-      if block_given?
-        yield response
-      end
-    end
-
-    def read(length)
-      readers, _ = IO.select([socket])
-      readers.first.read(length)
+      reader.read
     end
 
   end
