@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.homepage        = 'https://github.com/bcobb/geary'
 
   s.add_development_dependency 'rspec'
+  s.add_dependency 'virtus'
 end
