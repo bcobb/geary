@@ -1,20 +1,14 @@
 require 'geary'
 
-module Geary
+describe 'a client' do
 
-  describe 'a client' do
+  it 'can issue echo request' do
+    factory = Geary::Factory.new(:host => 'localhost', :port => 4730)
+    client = factory.client
 
-    it 'can issue echo request' do
-      socket = ::TCPSocket.new('localhost', 4730)
-      translator = PacketTranslator.new
-      reader = PacketReader.new(:source => socket, :translator => translator)
+    packet = client.echo('hello!')
 
-      echo = Echo.new(reader)
-      expect(echo.call('test!').data).to eql('test!')
-
-      socket.close
-    end
-
+    expect(packet.data).to eql('hello!')
   end
 
 end
