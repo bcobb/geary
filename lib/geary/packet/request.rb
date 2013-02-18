@@ -2,13 +2,13 @@ require 'virtus'
 
 module Geary
   module Packet
-    class Response
+    class Request
       include Virtus::ValueObject
 
       attribute :arguments, Array[String]
 
       def magic
-        "\0RES"
+        "\0REQ"
       end
 
       def type

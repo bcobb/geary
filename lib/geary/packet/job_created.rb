@@ -2,22 +2,18 @@ require_relative 'response'
 
 module Geary
   module Packet
-    class Error < Response
+    class JobCreated < Response
 
       def self.type
-        19
+        8
       end
 
       def self.packet_name
-        'ERROR'
+        'JOB_CREATED'
       end
 
-      def error_code
+      def job_handle
         arguments.first
-      end
-
-      def error_text
-        arguments[1]
       end
 
     end

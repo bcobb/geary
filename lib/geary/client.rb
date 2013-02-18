@@ -1,20 +1,25 @@
 module Geary
   class Client
 
-    attr_reader :packet_reader
+    attr_reader :packet_stream, :unique_id_generator
 
     def initialize(options = {})
-      @packet_reader = options.fetch(:packet_reader)
+      @packet_stream = options.fetch(:packet_stream)
+      @unique_id_generator = options.fetch(:unique_id_generator)
     end
 
     def echo(data)
-      body = [data].join("\0")
-      header = ["\0REQ", 16, body.size].pack('a4NN')
+      packet_stream.write(:echo_req, data)
 
-      _, writers = IO.select([], [packet_reader.source])
-      writers.first.write(header + body)
+      packet_stream.read
+    end
 
-      packet_reader.read
+    def submit_job(function_name, data)
+      unique_id = unique_id_generator.generate(function_name, data)
+
+      packet_stream.write(:submit_job, function_name, unique_id, data)
+
+      packet_stream.read
     end
 
   end

@@ -2,22 +2,18 @@ require_relative 'response'
 
 module Geary
   module Packet
-    class Error < Response
+    class EchoResponse < Response
 
       def self.type
-        19
+        17
       end
 
       def self.packet_name
-        'ERROR'
+        'ECHO_RES'
       end
 
-      def error_code
+      def data
         arguments.first
-      end
-
-      def error_text
-        arguments[1]
       end
 
     end
