@@ -5,7 +5,7 @@ module Geary
   class PacketTypeRepository
     include Normalization
 
-    def self.seeded_with(*initial_types)
+    def self.seeded_with(initial_types)
       initial_types.reduce(new) do |repository, packet_type|
         [packet_type.type, packet_type.packet_name].each do |key|
           repository.store(key, packet_type)

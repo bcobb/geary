@@ -5,7 +5,6 @@ require_relative 'client'
 require_relative 'uuid_generator'
 require_relative 'packet_stream'
 require_relative 'packet_type_repository'
-
 require_relative 'packet/all'
 
 module Geary
@@ -32,13 +31,11 @@ module Geary
     end
 
     def standard_packet_type_repository
-      PacketTypeRepository.seeded_with(
-        Packet::JobCreated,
-        Packet::SubmitJob,
-        Packet::EchoRequest,
-        Packet::EchoResponse,
-        Packet::Error
-      )
+      gearman_packet_types = Packet.constants.
+        map { |c| Packet.const_get(c) }.
+        select { |t| t.respond_to?(:packet_name) }
+
+      PacketTypeRepository.seeded_with(gearman_packet_types)
     end
 
   end
@@ -61,10 +58,7 @@ __END__
                         RES    Client
 14  WORK_FAIL           REQ    Worker
                         RES    Client
-15  GET_STATUS          REQ    Client
-18  SUBMIT_JOB_BG       REQ    Client
 20  STATUS_RES          RES    Client
-21  SUBMIT_JOB_HIGH     REQ    Client
 22  SET_CLIENT_ID       REQ    Worker
 23  CAN_DO_TIMEOUT      REQ    Worker
 24  ALL_YOURS           REQ    Worker
@@ -78,8 +72,5 @@ __END__
                         RES    Client
 30  GRAB_JOB_UNIQ       REQ    Worker
 31  JOB_ASSIGN_UNIQ     RES    Worker
-32  SUBMIT_JOB_HIGH_BG  REQ    Client
-33  SUBMIT_JOB_LOW      REQ    Client
-34  SUBMIT_JOB_LOW_BG   REQ    Client
 35  SUBMIT_JOB_SCHED    REQ    Client
 36  SUBMIT_JOB_EPOCH    REQ    Client
