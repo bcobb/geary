@@ -45,10 +45,18 @@ module Geary
                      :percent_complete_numerator,
                      :percent_complete_denominator]
 
-    customize :STATUS_RES do
+    customize 'StatusResponse' do
 
       def percent_complete
-        percent_complete_numerator.to_f / percent_complete_denominator.to_f
+        if percent_complete_numerator.nil? || percent_complete_denominator.nil?
+          0.0
+        else
+          percent_complete_numerator.to_f / percent_complete_denominator.to_f
+        end
+      end
+
+      def complete?
+        percent_complete == 1.0
       end
 
       def known?

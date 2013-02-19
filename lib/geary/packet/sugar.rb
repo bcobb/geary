@@ -16,7 +16,9 @@ module Geary
         build_packet_class(packet_name, options)
       end
 
-      def customize(packet_name, &block)
+      def customize(class_name, &block)
+        class_ = Packet.const_get(class_name)
+        class_.class_eval(&block)
       end
 
       def build_packet_class(packet_name, options)
