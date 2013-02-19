@@ -52,5 +52,11 @@ module Geary
       packet_stream.read
     end
 
+    def set_server_option(option_name)
+      packet_stream.write(:option_req, option_name)
+
+      packet_stream.read
+    end
+
   end
 end

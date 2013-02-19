@@ -56,4 +56,16 @@ describe 'a client' do
     expect(status.job_handle).to eql(job_created.job_handle)
   end
 
+  it 'can set options on the server' do
+    option_res = client.set_server_option('exceptions')
+
+    expect(option_res.option_name).to eql('exceptions')
+  end
+
+  it 'will return an error when setting an invalid option' do
+    option_res = client.set_server_option('unknown_option_i_made_up')
+
+    expect(option_res).to be_a(Geary::Packet::Error)
+  end
+
 end

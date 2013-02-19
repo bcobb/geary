@@ -7,20 +7,11 @@ module Geary
     request :SUBMIT_JOB, :number => 7, :as => 'SubmitJob',
       :arguments => [:function_name, :unique_id, :data]
 
-    request :GET_STATUS, :number => 15, :as => 'GetStatus',
-      :arguments => [:job_handle]
-
-    request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
-      :arguments => [:data]
-
     request :SUBMIT_JOB_BG, :number => 18, :as => 'SubmitJobBg',
       :arguments => [:function_name, :unique_id, :data]
 
     request :SUBMIT_JOB_HIGH, :number => 21, :as => 'SubmitJobHigh',
       :arguments => [:function_name, :unique_id, :data]
-
-    request :OPTION_REQ, :number => 26, :as => 'OptionRequest',
-      :arguments => [:option_name]
 
     request :SUBMIT_JOB_HIGH_BG, :number => 32, :as => 'SubmitJobHighBg',
       :arguments => [:function_name, :unique_id, :data]
@@ -31,11 +22,23 @@ module Geary
     request :SUBMIT_JOB_LOW_BG, :number => 33, :as => 'SubmitJobLowBg',
       :arguments => [:function_name, :unique_id, :data]
 
-    response :JOB_CREATED, :number => 8, :as => 'JobCreated',
+    request :GET_STATUS, :number => 15, :as => 'GetStatus',
       :arguments => [:job_handle]
+
+    request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
+      :arguments => [:data]
 
     response :ECHO_RES, :number => 17, :as => 'EchoResponse',
       :arguments => [:data]
+
+    request :OPTION_REQ, :number => 26, :as => 'OptionRequest',
+      :arguments => [:option_name]
+
+    request :OPTION_RES, :number => 27, :as => 'OptionResponse',
+      :arguments => [:option_name]
+
+    response :JOB_CREATED, :number => 8, :as => 'JobCreated',
+      :arguments => [:job_handle]
 
     response :ERROR, :number => 19, :as => 'Error',
       :arguments => [:error_code, :error_text]
