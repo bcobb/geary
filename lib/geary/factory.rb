@@ -2,6 +2,7 @@ require 'virtus'
 require 'socket'
 
 require_relative 'client'
+require_relative 'worker_client'
 require_relative 'uuid_generator'
 require_relative 'packet_stream'
 require_relative 'packet_type_repository'
@@ -14,10 +15,13 @@ module Geary
     attribute :host, String, :default => "localhost"
     attribute :port, Integer, :default => 4730
 
-    def client
+    def client(options = {})
       socket = ::TCPSocket.new(host, port)
 
-      uuid_generator = UUIDGenerator.new
+      unique_id_generator = options.fetch(:unique_id_generator) do
+        UUIDGenerator.new
+      end
+
       packet_type_repository = standard_packet_type_repository
       packet_stream = PacketStream.new(
         :connection => socket,
@@ -26,8 +30,20 @@ module Geary
 
       Client.new(
         :packet_stream => packet_stream,
-        :unique_id_generator => uuid_generator
+        :unique_id_generator => unique_id_generator
       )
+    end
+
+    def worker_client
+      socket = ::TCPSocket.new(host, port)
+
+      packet_type_repository = standard_packet_type_repository
+      packet_stream = PacketStream.new(
+        :connection => socket,
+        :packet_type_repository => packet_type_repository
+      )
+
+      WorkerClient.new(:packet_stream => packet_stream)
     end
 
     def standard_packet_type_repository
@@ -48,14 +64,6 @@ end
 
 __END__
 #   Name                Magic  Type
-1   CAN_DO              REQ    Worker
-2   CANT_DO             REQ    Worker
-3   RESET_ABILITIES     REQ    Worker
-4   PRE_SLEEP           REQ    Worker
-6   NOOP                RES    Worker
-9   GRAB_JOB            REQ    Worker
-10  NO_JOB              RES    Worker
-11  JOB_ASSIGN          RES    Worker
 12  WORK_STATUS         REQ    Worker
                         RES    Client
 13  WORK_COMPLETE       REQ    Worker
@@ -71,5 +79,3 @@ __END__
                         RES    Client
 29  WORK_WARNING        REQ    Worker
                         RES    Client
-30  GRAB_JOB_UNIQ       REQ    Worker
-31  JOB_ASSIGN_UNIQ     RES    Worker

@@ -25,7 +25,11 @@ module Geary
       def build_packet_class(packet_name, options)
         magic = options.fetch(:magic)
         prototcol_number = options.fetch(:number)
-        class_name = options.fetch(:as)
+
+        class_name = options.fetch(:as) do
+          packet_class_from_packet_name(packet_name)
+        end
+
         argument_names = Array(options.fetch(:arguments, nil))
 
         argument_methods = argument_names.map.with_index do |name, index|
@@ -63,6 +67,12 @@ module Geary
 
           end
         }
+      end
+
+      def packet_class_from_packet_name(packet_name)
+        packet_name.to_s.split('_').map(&:downcase).map do |part|
+          part.gsub(/\A([a-z])/) { |start| start.upcase }
+        end.join
       end
 
     end

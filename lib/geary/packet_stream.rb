@@ -13,14 +13,23 @@ module Geary
     end
 
     def request(type, *arguments)
-      write(Magic::REQUEST, type, *arguments)
+      write_request(type, *arguments)
 
       read
     end
 
+    def write_request(type, *arguments)
+      write(Magic::REQUEST, type, *arguments)
+    end
+
     def read
       magic, type, arguments_length = read_packet_header
-      arguments = read_packet_arguments(arguments_length)
+
+      if arguments_length > 0
+        arguments = read_packet_arguments(arguments_length)
+      else
+        arguments = []
+      end
 
       new_packet(magic, type, :arguments => arguments)
     end

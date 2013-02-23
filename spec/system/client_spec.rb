@@ -3,8 +3,7 @@ require 'geary'
 describe 'a client' do
 
   let(:client) do
-    factory = Geary::Factory.new(:host => 'localhost', :port => 4730)
-    client = factory.client
+    Geary::Factory.new(:host => 'localhost', :port => 4730).client
   end
 
   it 'issues echo requests' do
