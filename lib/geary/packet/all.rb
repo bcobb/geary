@@ -34,7 +34,7 @@ module Geary
     request :OPTION_REQ, :number => 26, :as => 'OptionRequest',
       :arguments => [:option_name]
 
-    request :OPTION_RES, :number => 27, :as => 'OptionResponse',
+    response :OPTION_RES, :number => 27, :as => 'OptionResponse',
       :arguments => [:option_name]
 
     response :JOB_CREATED, :number => 8, :as => 'JobCreated',
@@ -66,8 +66,16 @@ module Geary
         known.to_i == 1
       end
 
+      def unknown?
+        not known?
+      end
+
       def running?
         running.to_i == 1
+      end
+
+      def stopped?
+        not running?
       end
 
     end

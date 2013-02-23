@@ -33,9 +33,14 @@ module Geary
     def standard_packet_type_repository
       gearman_packet_types = Packet.constants.
         map { |c| Packet.const_get(c) }.
-        select { |t| t.respond_to?(:packet_name) }
+        select { |t| t.respond_to?(:packet_name) }.
+        reduce(PacketTypeRepository.new) do |repository, packet_type|
+          [packet_type.protocol_number, packet_type.packet_name].each do |key|
+            repository.store(packet_type.magic, key, packet_type)
+          end
 
-      PacketTypeRepository.seeded_with(gearman_packet_types)
+          repository
+        end
     end
 
   end

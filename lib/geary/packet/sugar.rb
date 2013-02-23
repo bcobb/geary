@@ -1,17 +1,18 @@
 require_relative 'standard'
+require_relative '../magic'
 
 module Geary
   module Packet
     module Sugar
 
       def response(packet_name, options = {})
-        options.update(:magic => "\0RES")
+        options.update(:magic => Magic::RESPONSE)
 
         build_packet_class(packet_name, options)
       end
 
       def request(packet_name, options = {})
-        options.update(:magic => "\0REQ")
+        options.update(:magic => Magic::REQUEST)
 
         build_packet_class(packet_name, options)
       end
@@ -46,7 +47,7 @@ module Geary
               #{magic.inspect}
             end
 
-            def self.type
+            def self.protocol_number
               #{prototcol_number}
             end
 
@@ -54,8 +55,8 @@ module Geary
               self.class.magic
             end
 
-            def type
-              self.class.type
+            def protocol_number
+              self.class.protocol_number
             end
 
             #{argument_methods.join}

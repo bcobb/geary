@@ -7,21 +7,21 @@ module Geary::Packet
     context 'without any other data' do
 
       it 'is 0% complete' do
-	packet = StatusResponse.new
+        packet = StatusResponse.new
 
-	expect(packet.percent_complete).to eql(0.0)
+        expect(packet.percent_complete).to eql(0.0)
       end
 
       it 'is unknown' do
-	packet = StatusResponse.new
+        packet = StatusResponse.new
 
-	expect(packet).to_not be_known
+        expect(packet).to_not be_known
       end
 
       it 'is not running' do
-	packet = StatusResponse.new
+        packet = StatusResponse.new
 
-	expect(packet).to_not be_running
+        expect(packet).to_not be_running
       end
 
     end

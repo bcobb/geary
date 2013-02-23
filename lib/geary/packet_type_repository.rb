@@ -1,38 +1,30 @@
-require_relative 'packet_type_repository/type_not_found'
+require_relative 'packet_type_repository/errors'
 require_relative 'packet_type_repository/normalization'
 
 module Geary
   class PacketTypeRepository
     include Normalization
 
-    def self.seeded_with(initial_types)
-      initial_types.reduce(new) do |repository, packet_type|
-        [packet_type.type, packet_type.packet_name].each do |key|
-          repository.store(key, packet_type)
-        end
-
-        repository
-      end
-    end
-
     def initialize
       @index = {}
     end
 
-    def packet(type, *args)
-      find(type).new(*args)
-    end
-
-    def store(id, packet_type)
-      @index.update(normalize(id) => packet_type)
+    def store(magic, id, packet_type)
+      @index[magic] ||= {}
+      @index[magic].update(normalize(id) => packet_type)
 
       self
     end
 
-    def find(id)
-      @index.fetch(normalize(id)) do |missing_key|
+    def find(magic, id)
+      magic_index = @index.fetch(magic) do |missing_magic|
+        raise MagicNotFound,
+          "could not find the magic code #{missing_magic}"
+      end
+
+      magic_index.fetch(normalize(id)) do |missing_key|
         raise TypeNotFound,
-          "could not find a packet type with type #{missing_key}"
+          "could not find a #{magic} packet with type #{missing_key}"
       end
     end
 

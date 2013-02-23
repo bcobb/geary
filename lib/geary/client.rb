@@ -9,9 +9,7 @@ module Geary
     end
 
     def echo(data)
-      packet_stream.write(:echo_req, data)
-
-      packet_stream.read
+      packet_stream.request(:echo_req, data)
     end
 
     def submit_job(function_name, data)
@@ -41,21 +39,15 @@ module Geary
     def submit_job_as(job_type, function_name, data)
       unique_id = unique_id_generator.generate(function_name, data)
 
-      packet_stream.write(job_type, function_name, unique_id, data)
-
-      packet_stream.read
+      packet_stream.request(job_type, function_name, unique_id, data)
     end
 
     def get_status(job_handle)
-      packet_stream.write(:get_status, job_handle)
-
-      packet_stream.read
+      packet_stream.request(:get_status, job_handle)
     end
 
     def set_server_option(option_name)
-      packet_stream.write(:option_req, option_name)
-
-      packet_stream.read
+      packet_stream.request(:option_req, option_name)
     end
 
   end
