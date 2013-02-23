@@ -52,7 +52,6 @@ __END__
 2   CANT_DO             REQ    Worker
 3   RESET_ABILITIES     REQ    Worker
 4   PRE_SLEEP           REQ    Worker
-5   (unused)            -      -
 6   NOOP                RES    Worker
 9   GRAB_JOB            REQ    Worker
 10  NO_JOB              RES    Worker
@@ -63,19 +62,14 @@ __END__
                         RES    Client
 14  WORK_FAIL           REQ    Worker
                         RES    Client
-20  STATUS_RES          RES    Client
 22  SET_CLIENT_ID       REQ    Worker
 23  CAN_DO_TIMEOUT      REQ    Worker
 24  ALL_YOURS           REQ    Worker
 25  WORK_EXCEPTION      REQ    Worker
                         RES    Client
-26  OPTION_REQ          REQ    Client/Worker
-27  OPTION_RES          RES    Client/Worker
 28  WORK_DATA           REQ    Worker
                         RES    Client
 29  WORK_WARNING        REQ    Worker
                         RES    Client
 30  GRAB_JOB_UNIQ       REQ    Worker
 31  JOB_ASSIGN_UNIQ     RES    Worker
-35  SUBMIT_JOB_SCHED    REQ    Client
-36  SUBMIT_JOB_EPOCH    REQ    Client

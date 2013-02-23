@@ -22,8 +22,23 @@ module Geary
     request :SUBMIT_JOB_LOW_BG, :number => 33, :as => 'SubmitJobLowBg',
       :arguments => [:function_name, :unique_id, :data]
 
+    request :SUBMIT_JOB_SCHED, :number => 35, :as => 'SubmitJobSched',
+      :arguments => [:function_name, :unique_id, :minute, :hour,
+                     :day_of_month, :month, :day_of_week, :data]
+
+    request :SUBMIT_JOB_EPOCH, :number => 36, :as => 'SubmitJobEpoch',
+      :arguments => [:function_name, :unique_id, :epoch_time, :data]
+
+    response :JOB_CREATED, :number => 8, :as => 'JobCreated',
+      :arguments => [:job_handle]
+
     request :GET_STATUS, :number => 15, :as => 'GetStatus',
       :arguments => [:job_handle]
+
+    response :STATUS_RES, :number => 20, :as => 'StatusResponse',
+      :arguments => [:job_handle, :known, :running,
+                     :percent_complete_numerator,
+                     :percent_complete_denominator]
 
     request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
       :arguments => [:data]
@@ -37,16 +52,8 @@ module Geary
     response :OPTION_RES, :number => 27, :as => 'OptionResponse',
       :arguments => [:option_name]
 
-    response :JOB_CREATED, :number => 8, :as => 'JobCreated',
-      :arguments => [:job_handle]
-
     response :ERROR, :number => 19, :as => 'Error',
       :arguments => [:error_code, :error_text]
-
-    response :STATUS_RES, :number => 20, :as => 'StatusResponse',
-      :arguments => [:job_handle, :known, :running,
-                     :percent_complete_numerator,
-                     :percent_complete_denominator]
 
     customize 'StatusResponse' do
 

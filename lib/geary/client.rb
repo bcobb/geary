@@ -36,10 +36,19 @@ module Geary
       submit_job_as(:submit_job_low_bg, function_name, data)
     end
 
-    def submit_job_as(job_type, function_name, data)
-      unique_id = unique_id_generator.generate(function_name, data)
+    def submit_job_sched(function_name, minute, hour, day, month, wday, data)
+      submit_job_as(:submit_job_sched, function_name, minute, hour, day, month,
+                    wday, data)
+    end
 
-      packet_stream.request(job_type, function_name, unique_id, data)
+    def submit_job_epoch(function_name, epoch_time, data)
+      submit_job_as(:submit_job_epoch, function_name, epoch_time, data)
+    end
+
+    def submit_job_as(job_type, function_name, *args)
+      unique_id = unique_id_generator.generate(function_name, args)
+
+      packet_stream.request(job_type, function_name, unique_id, *args)
     end
 
     def get_status(job_handle)

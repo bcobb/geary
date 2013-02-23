@@ -16,36 +16,67 @@ describe 'a client' do
   it 'submits jobs' do
     packet = client.submit_job(:test, 'something')
 
+    expect(packet).to be_a(Geary::Packet::JobCreated)
     expect(packet.job_handle).to_not be_nil
   end
 
   it 'submits high priority jobs' do
     packet = client.submit_job_high(:test, 'something')
 
+    expect(packet).to be_a(Geary::Packet::JobCreated)
     expect(packet.job_handle).to_not be_nil
   end
 
   it 'submits low priority jobs' do
     packet = client.submit_job_low(:test, 'something')
 
+    expect(packet).to be_a(Geary::Packet::JobCreated)
     expect(packet.job_handle).to_not be_nil
   end
 
   it 'submits background jobs' do
     packet = client.submit_job_bg(:test, 'something')
 
+    expect(packet).to be_a(Geary::Packet::JobCreated)
     expect(packet.job_handle).to_not be_nil
   end
 
   it 'submits high priority background jobs' do
     packet = client.submit_job_high_bg(:test, 'something')
 
+    expect(packet).to be_a(Geary::Packet::JobCreated)
     expect(packet.job_handle).to_not be_nil
   end
 
   it 'submits low priority background jobs' do
     packet = client.submit_job_low_bg(:test, 'something')
 
+    expect(packet).to be_a(Geary::Packet::JobCreated)
+    expect(packet.job_handle).to_not be_nil
+  end
+
+  it 'does not submit scheduled jobs' do
+    week_from_now = DateTime.now + 7
+    stamp = week_from_now.strftime("%-M %-H %-d %-m %w")
+    date_args = stamp.split(' ').map(&:to_i)
+
+    weekday = date_args.pop
+    date_args.push(weekday - 1) # Gearman claims Monday = 0
+
+    arguments = date_args + ['something']
+
+    packet = client.submit_job_sched(:test, *arguments)
+
+    expect(packet).to be_a(Geary::Packet::Error)
+    expect(packet.error_code).to eql('bad_command')
+  end
+
+  it 'can submit epoch scheduled jobs' do
+    epoch_time = Time.now.to_i + 60
+
+    packet = client.submit_job_epoch(:test, epoch_time, 'something')
+
+    expect(packet).to be_a(Geary::Packet::JobCreated)
     expect(packet.job_handle).to_not be_nil
   end
 
