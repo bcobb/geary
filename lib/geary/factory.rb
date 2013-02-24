@@ -64,13 +64,9 @@ end
 
 __END__
 #   Name                Magic  Type
-14  WORK_FAIL           REQ    Worker
-                        RES    Client
 22  SET_CLIENT_ID       REQ    Worker
 23  CAN_DO_TIMEOUT      REQ    Worker
 24  ALL_YOURS           REQ    Worker
-25  WORK_EXCEPTION      REQ    Worker
-                        RES    Client
 28  WORK_DATA           REQ    Worker
                         RES    Client
 29  WORK_WARNING        REQ    Worker

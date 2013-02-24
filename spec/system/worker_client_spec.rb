@@ -9,6 +9,11 @@ describe "a worker's client" do
   let(:client) { factory.client }
   let(:worker) { factory.worker_client }
 
+  after do
+    client.packet_stream.connection.close
+    worker.packet_stream.connection.close
+  end
+
   it 'grabs jobs once it registers abilities' do
     submitted_job = client.submit_job(:grab_job_test, 'something')
     worker.can_do(:grab_job_test)
@@ -120,6 +125,20 @@ describe "a worker's client" do
     work_fail = client.packet_stream.read
 
     expect(work_fail).to be_a(Geary::Packet::WorkFailResponse)
+  end
+
+  it 'can send exception notices' do
+    client.set_server_option('exceptions')
+
+    worker.can_do(:long_running_will_raise)
+    client_job = client.submit_job(:long_running_will_raise, 'data')
+
+    worker_job = worker.grab_job
+    worker.send_work_exception(worker_job.job_handle, 'oh no!')
+
+    work_exception = client.packet_stream.read
+
+    expect(work_exception.data).to eql('oh no!')
   end
 
 end

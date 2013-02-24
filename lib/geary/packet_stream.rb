@@ -10,7 +10,6 @@ module Geary
     def initialize(options = {})
       @connection = options.fetch(:connection)
       @packet_type_repository = options.fetch(:packet_type_repository)
-      @packet_queue = []
     end
 
     def request(type, *arguments)

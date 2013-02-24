@@ -53,9 +53,13 @@ module Geary
       packet_stream.write_request(:work_fail, job_handle)
     end
 
+    def send_work_exception(job_handle, data)
+      packet_stream.write_request(:work_exception, job_handle, data)
+    end
+
     def has_jobs_waiting?
       begin
-        Timeout.timeout(0.1, PollTimeout) do
+        Timeout.timeout(1e-5, PollTimeout) do
           packet_stream.read
         end
       rescue PollTimeout
