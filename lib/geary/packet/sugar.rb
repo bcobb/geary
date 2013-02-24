@@ -63,6 +63,14 @@ module Geary
               self.class.protocol_number
             end
 
+            def inspect
+              super.sub('Standard', '#{class_name}')
+            end
+
+            def to_s
+              super.sub('Standard', '#{class_name}')
+            end
+
             #{argument_methods.join}
 
           end

@@ -110,4 +110,16 @@ describe "a worker's client" do
     expect(work_complete.data).to eql('complete')
   end
 
+  it 'can send failure notices' do
+    worker.can_do(:long_running_will_fail)
+    client_job = client.submit_job(:long_running_will_fail, 'data')
+
+    worker_job = worker.grab_job
+    worker.send_work_fail(worker_job.job_handle)
+
+    work_fail = client.packet_stream.read
+
+    expect(work_fail).to be_a(Geary::Packet::WorkFailResponse)
+  end
+
 end

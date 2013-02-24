@@ -68,6 +68,12 @@ module Geary
     response :WORK_COMPLETE, :number => 13, :as => 'WorkCompleteResponse',
       :arguments => [:job_handle, :data]
 
+    request :WORK_FAIL, :number => 14, :as => 'WorkFailRequest',
+      :arguments => [:job_handle]
+
+    response :WORK_FAIL, :number => 14, :as => 'WorkFailResponse',
+      :arguments => [:job_handle]
+
     request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
       :arguments => [:data]
 
