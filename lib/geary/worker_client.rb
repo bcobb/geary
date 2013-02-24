@@ -36,6 +36,15 @@ module Geary
       packet_stream.write_request(:pre_sleep)
     end
 
+    def send_work_status(job_handle, percent_complete)
+      denominator = 100
+      numerator = percent_complete * denominator
+
+      arguments = [job_handle, numerator, denominator]
+
+      packet_stream.write_request(:work_status, *arguments)
+    end
+
     def has_jobs_waiting?
       begin
         Timeout.timeout(0.1, PollTimeout) do

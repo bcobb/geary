@@ -70,4 +70,18 @@ describe "a worker's client" do
     expect(assigned_job.unique_id).to eql(random)
   end
 
+  it 'can send an update on status' do
+    worker.can_do(:long_running_sends_status)
+    client_job = client.submit_job(:long_running_sends_status, 'data')
+    worker_job = worker.grab_job
+    worker.send_work_status(worker_job.job_handle, 0.5)
+
+    # XXX: get_status should read _until_ status_res
+    status_packet = client.packet_stream.read
+
+    client_status = client.get_status(client_job.job_handle)
+
+    expect(client_status.percent_complete).to eql(0.5)
+  end
+
 end

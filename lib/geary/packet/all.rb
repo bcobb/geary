@@ -56,6 +56,12 @@ module Geary
     request :PRE_SLEEP, :number => 4
     response :NOOP, :number => 6, :as => 'NoOp'
 
+    request :WORK_STATUS, :number => 12, :as => 'WorkStatusRequest',
+      :arguments => [:job_handle, :numerator, :denominator]
+
+    response :WORK_STATUS, :number => 12, :as => 'WorkStatusResponse',
+      :arguments => [:job_handle, :numerator, :denominator]
+
     request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
       :arguments => [:data]
 
