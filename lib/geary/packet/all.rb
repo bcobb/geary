@@ -62,6 +62,12 @@ module Geary
     response :WORK_STATUS, :number => 12, :as => 'WorkStatusResponse',
       :arguments => [:job_handle, :numerator, :denominator]
 
+    request :WORK_COMPLETE, :number => 13, :as => 'WorkCompleteRequest',
+      :arguments => [:job_handle, :data]
+
+    response :WORK_COMPLETE, :number => 13, :as => 'WorkCompleteResponse',
+      :arguments => [:job_handle, :data]
+
     request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
       :arguments => [:data]
 

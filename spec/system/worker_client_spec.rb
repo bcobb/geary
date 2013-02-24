@@ -84,4 +84,30 @@ describe "a worker's client" do
     expect(client_status.percent_complete).to eql(0.5)
   end
 
+  it 'can update status to 100% complete' do
+    worker.can_do(:long_running_sends_status)
+    client_job = client.submit_job(:long_running_sends_status, 'data')
+    worker_job = worker.grab_job
+    worker.send_work_status(worker_job.job_handle, 1)
+
+    # XXX: get_status should read _until_ status_res
+    status_packet = client.packet_stream.read
+
+    client_status = client.get_status(client_job.job_handle)
+
+    expect(client_status).to be_complete
+  end
+
+  it 'can send data on completion' do
+    worker.can_do(:long_running_will_complete)
+    client_job = client.submit_job(:long_running_will_complete, 'data')
+
+    worker_job = worker.grab_job
+    worker.send_work_complete(worker_job.job_handle, 'complete')
+
+    work_complete = client.packet_stream.read
+
+    expect(work_complete.data).to eql('complete')
+  end
+
 end

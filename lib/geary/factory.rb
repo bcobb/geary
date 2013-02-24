@@ -64,10 +64,6 @@ end
 
 __END__
 #   Name                Magic  Type
-12  WORK_STATUS         REQ    Worker
-                        RES    Client
-13  WORK_COMPLETE       REQ    Worker
-                        RES    Client
 14  WORK_FAIL           REQ    Worker
                         RES    Client
 22  SET_CLIENT_ID       REQ    Worker
