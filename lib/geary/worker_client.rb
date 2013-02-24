@@ -61,6 +61,10 @@ module Geary
       packet_stream.write_request(:work_data, job_handle, data)
     end
 
+    def send_work_warning(job_handle, data)
+      packet_stream.write_request(:work_warning, job_handle, data)
+    end
+
     def has_jobs_waiting?
       begin
         Timeout.timeout(1e-5, PollTimeout) do

@@ -86,6 +86,12 @@ module Geary
     response :WORK_DATA, :number => 28, :as => 'WorkDataResponse',
       :arguments => [:job_handle, :data]
 
+    request :WORK_WARNING, :number => 29, :as => 'WorkWarningRequest',
+      :arguments => [:job_handle, :data]
+
+    response :WORK_WARNING, :number => 29, :as => 'WorkWarningResponse',
+      :arguments => [:job_handle, :data]
+
     request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
       :arguments => [:data]
 

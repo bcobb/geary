@@ -153,4 +153,16 @@ describe "a worker's client" do
     expect(work_data.data).to eql('woo!')
   end
 
+  it 'can send work warnings' do
+    worker.can_do(:long_running_will_warn)
+    client_job = client.submit_job(:long_running_will_warn, 'data')
+
+    worker_job = worker.grab_job
+    worker.send_work_warning(worker_job.job_handle, 'watch out!')
+
+    work_warning = client.packet_stream.read
+
+    expect(work_warning.data).to eql('watch out!')
+  end
+
 end
