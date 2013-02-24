@@ -80,6 +80,12 @@ module Geary
     response :WORK_EXCEPTION, :number => 25, :as => 'WorkExceptionResponse',
       :arguments => [:job_handle, :data]
 
+    request :WORK_DATA, :number => 28, :as => 'WorkDataRequest',
+      :arguments => [:job_handle, :data]
+
+    response :WORK_DATA, :number => 28, :as => 'WorkDataResponse',
+      :arguments => [:job_handle, :data]
+
     request :ECHO_REQ, :number => 16, :as => 'EchoRequest',
       :arguments => [:data]
 
