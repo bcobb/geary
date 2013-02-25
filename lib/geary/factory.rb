@@ -77,6 +77,5 @@ end
 
 __END__
 #   Name                Magic  Type
-22  SET_CLIENT_ID       REQ    Worker
 23  CAN_DO_TIMEOUT      REQ    Worker
 24  ALL_YOURS           REQ    Worker

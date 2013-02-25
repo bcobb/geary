@@ -69,6 +69,10 @@ module Geary
       packet_stream.write_request(:work_warning, job_handle, data)
     end
 
+    def set_client_id(client_id)
+      packet_stream.write_request(:set_client_id, client_id)
+    end
+
     def has_jobs_waiting?
       begin
         Timeout.timeout(1e-3, PollTimeout) do

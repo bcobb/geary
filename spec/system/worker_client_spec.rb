@@ -167,7 +167,6 @@ describe "a worker's client" do
   end
 
   it 'can set its client id' do
-    pending
     random = Time.now.to_i.to_s + rand.to_s
     id = "worker-with-id-#{random}"
 
