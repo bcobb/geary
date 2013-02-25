@@ -47,4 +47,22 @@ describe "the admin client" do
     expect(version).to_not be_nil
   end
 
+  it 'can shut down the server' do
+    packet_stream = double('PacketStream')
+    admin_client = Geary::AdminClient.new(:packet_stream => packet_stream)
+
+    packet_stream.should_receive(:write).with('shutdown')
+
+    admin_client.shutdown
+  end
+
+  it 'can shut down the server gracefully' do
+    packet_stream = double('PacketStream')
+    admin_client = Geary::AdminClient.new(:packet_stream => packet_stream)
+
+    packet_stream.should_receive(:write).with('shutdown graceful')
+
+    admin_client.shutdown(true)
+  end
+
 end

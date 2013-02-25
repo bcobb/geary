@@ -59,7 +59,7 @@ module Geary
     end
 
     def shutdown(graceful = false)
-      command = 'shutdown'
+      command = ['shutdown']
 
       if graceful
         command << 'graceful'
