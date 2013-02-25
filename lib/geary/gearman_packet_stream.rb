@@ -1,7 +1,11 @@
+require 'forwardable'
 require_relative 'magic'
 
 module Geary
-  class PacketStream
+  class GearmanPacketStream
+    extend Forwardable
+
+    def_delegator :connection, :close
 
     FORMAT = 'a4NN' unless defined? FORMAT
 
@@ -40,35 +44,15 @@ module Geary
       body = packet.arguments.join("\0")
       header = [packet.magic, packet.protocol_number, body.size].pack(FORMAT)
 
-      on_writeable do |writeable|
-        writeable.write(header + body)
-      end
+      connection.write(header + body)
     end
 
     def read_packet_arguments(length)
-      on_readable do |readable|
-        readable.read(length).split("\0")
-      end
+      connection.read(length).split("\0")
     end
 
     def read_packet_header
-      on_readable do |readable|
-        readable.read(12).unpack(FORMAT)
-      end
-    end
-
-    def on_readable
-      readables, _ = IO::select([connection])
-      readable = readables.first
-
-      yield readable
-    end
-
-    def on_writeable
-      _, writeables = IO.select([], [connection])
-      writeable = writeables.first
-
-      yield writeable
+      connection.read(12).unpack(FORMAT)
     end
 
     def new_packet(magic, type, *args)

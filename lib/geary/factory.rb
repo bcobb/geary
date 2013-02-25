@@ -3,8 +3,11 @@ require 'socket'
 
 require_relative 'client'
 require_relative 'worker_client'
+require_relative 'admin_client'
 require_relative 'uuid_generator'
-require_relative 'packet_stream'
+require_relative 'connection'
+require_relative 'gearman_packet_stream'
+require_relative 'text_stream'
 require_relative 'packet_type_repository'
 require_relative 'packet/all'
 
@@ -23,8 +26,8 @@ module Geary
       end
 
       packet_type_repository = standard_packet_type_repository
-      packet_stream = PacketStream.new(
-        :connection => socket,
+      packet_stream = GearmanPacketStream.new(
+        :connection => Connection.new(:io => socket),
         :packet_type_repository => packet_type_repository
       )
 
@@ -38,12 +41,22 @@ module Geary
       socket = ::TCPSocket.new(host, port)
 
       packet_type_repository = standard_packet_type_repository
-      packet_stream = PacketStream.new(
-        :connection => socket,
+      packet_stream = GearmanPacketStream.new(
+        :connection => Connection.new(:io => socket),
         :packet_type_repository => packet_type_repository
       )
 
       WorkerClient.new(:packet_stream => packet_stream)
+    end
+
+    def admin_client
+      socket = ::TCPSocket.new(host, port)
+
+      packet_stream = TextStream.new(
+        :connection => Connection.new(:io => socket)
+      )
+
+      AdminClient.new(:packet_stream => packet_stream)
     end
 
     def standard_packet_type_repository

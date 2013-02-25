@@ -1,10 +1,14 @@
+require 'forwardable'
 require 'timeout'
 
 module Geary
   class WorkerClient
+    extend Forwardable
 
     class PollTimeout < RuntimeError
     end
+
+    def_delegator :packet_stream, :connection
 
     attr_reader :packet_stream
 
@@ -67,7 +71,7 @@ module Geary
 
     def has_jobs_waiting?
       begin
-        Timeout.timeout(1e-5, PollTimeout) do
+        Timeout.timeout(1e-3, PollTimeout) do
           packet_stream.read
         end
       rescue PollTimeout

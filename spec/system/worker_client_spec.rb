@@ -8,10 +8,11 @@ describe "a worker's client" do
 
   let(:client) { factory.client }
   let(:worker) { factory.worker_client }
+  let(:admin_client) { factory.admin_client }
 
   after do
-    client.packet_stream.connection.close
-    worker.packet_stream.connection.close
+    client.connection.close
+    worker.connection.close
   end
 
   it 'grabs jobs once it registers abilities' do
@@ -163,6 +164,21 @@ describe "a worker's client" do
     work_warning = client.packet_stream.read
 
     expect(work_warning.data).to eql('watch out!')
+  end
+
+  it 'can set its client id' do
+    pending
+    random = Time.now.to_i.to_s + rand.to_s
+    id = "worker-with-id-#{random}"
+
+    worker.set_client_id(id)
+    worker.can_do(:hi_mom)
+
+    observed_worker = admin_client.workers.find do |worker|
+      worker.client_id == id
+    end
+
+    expect(observed_worker).to_not be_nil
   end
 
 end

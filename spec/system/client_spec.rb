@@ -6,6 +6,10 @@ describe 'a client' do
     Geary::Factory.new(:host => 'localhost', :port => 4730).client
   end
 
+  after do
+    client.connection.close
+  end
+
   it 'issues echo requests' do
     packet = client.echo('hello!')
 

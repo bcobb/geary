@@ -1,5 +1,10 @@
+require 'forwardable'
+
 module Geary
   class Client
+    extend Forwardable
+
+    def_delegator :packet_stream, :connection
 
     attr_reader :packet_stream, :unique_id_generator
 
