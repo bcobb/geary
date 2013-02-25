@@ -63,7 +63,7 @@ describe "a worker's client" do
     expect(worker).to_not have_jobs_waiting
   end
 
-  it 'can grab a job and get its unique id' do
+  it 'grabs a job and get its unique id' do
     random = Time.now.to_i.to_s + rand.to_s
     fake_generator = double('Generator', :generate => random)
     client = factory.client(:unique_id_generator => fake_generator)
@@ -76,7 +76,7 @@ describe "a worker's client" do
     expect(assigned_job.unique_id).to eql(random)
   end
 
-  it 'can send an update on status' do
+  it 'sends an update on status' do
     worker.can_do(:long_running_sends_status)
     client_job = client.submit_job(:long_running_sends_status, 'data')
     worker_job = worker.grab_job
@@ -90,7 +90,7 @@ describe "a worker's client" do
     expect(client_status.percent_complete).to eql(0.5)
   end
 
-  it 'can update status to 100% complete' do
+  it 'updates status to 100% complete' do
     worker.can_do(:long_running_sends_status)
     client_job = client.submit_job(:long_running_sends_status, 'data')
     worker_job = worker.grab_job
@@ -104,7 +104,7 @@ describe "a worker's client" do
     expect(client_status).to be_complete
   end
 
-  it 'can send data on completion' do
+  it 'sends data on completion' do
     worker.can_do(:long_running_will_complete)
     client_job = client.submit_job(:long_running_will_complete, 'data')
 
@@ -116,7 +116,7 @@ describe "a worker's client" do
     expect(work_complete.data).to eql('complete')
   end
 
-  it 'can send failure notices' do
+  it 'sends failure notices' do
     worker.can_do(:long_running_will_fail)
     client_job = client.submit_job(:long_running_will_fail, 'data')
 
@@ -128,7 +128,7 @@ describe "a worker's client" do
     expect(work_fail).to be_a(Geary::Packet::WorkFailResponse)
   end
 
-  it 'can send exception notices' do
+  it 'sends exception notices' do
     client.set_server_option('exceptions')
 
     worker.can_do(:long_running_will_raise)
@@ -142,7 +142,7 @@ describe "a worker's client" do
     expect(work_exception.data).to eql('oh no!')
   end
 
-  it 'can send work data' do
+  it 'sends work data' do
     worker.can_do(:long_running_will_send_data)
     client_job = client.submit_job(:long_running_will_send_data, 'data')
 
@@ -154,7 +154,7 @@ describe "a worker's client" do
     expect(work_data.data).to eql('woo!')
   end
 
-  it 'can send work warnings' do
+  it 'sends work warnings' do
     worker.can_do(:long_running_will_warn)
     client_job = client.submit_job(:long_running_will_warn, 'data')
 
@@ -166,7 +166,7 @@ describe "a worker's client" do
     expect(work_warning.data).to eql('watch out!')
   end
 
-  it 'can set its client id' do
+  it 'set its client id' do
     random = Time.now.to_i.to_s + rand.to_s
     id = "worker-with-id-#{random}"
 
@@ -178,6 +178,18 @@ describe "a worker's client" do
     end
 
     expect(observed_worker).to_not be_nil
+  end
+
+  it 'optionally sets a timeout when it registers abilities' do
+    pending "Investigation as to how the timeout is triggered"
+
+    job = client.submit_job(:timeout_ability, 'failure!')
+    worker.can_do_timeout(:timeout_ability, 1)
+    worker.grab_job
+
+    status_packet = client.packet_stream.read
+
+    expect(status_packet).to be_a(Geary::Packet::WorkFailResponse)
   end
 
 end

@@ -20,6 +20,10 @@ module Geary
       packet_stream.write_request(:can_do, function_name)
     end
 
+    def can_do_timeout(function_name, timeout)
+      packet_stream.write_request(:can_do_timeout, function_name, timeout)
+    end
+
     def cant_do(function_name)
       packet_stream.write_request(:cant_do, function_name)
     end

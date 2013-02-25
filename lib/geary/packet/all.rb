@@ -39,6 +39,8 @@ module Geary
                      :percent_complete_denominator]
 
     request :CAN_DO, :number => 1, :arguments => [:function_name]
+    request :CAN_DO_TIMEOUT, :number => 23,
+      :arguments => [:function_name, :timeout]
     request :CANT_DO, :number => 2, :arguments => [:function_name]
     request :RESET_ABILITIES, :number => 3
 

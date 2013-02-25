@@ -74,8 +74,3 @@ module Geary
 
   end
 end
-
-__END__
-#   Name                Magic  Type
-23  CAN_DO_TIMEOUT      REQ    Worker
-24  ALL_YOURS           REQ    Worker
