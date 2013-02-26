@@ -13,6 +13,7 @@ describe "a worker's client" do
   after do
     client.connection.close
     worker.connection.close
+    admin_client.connection.close
   end
 
   it 'grabs jobs once it registers abilities' do
@@ -77,12 +78,13 @@ describe "a worker's client" do
   end
 
   it 'sends an update on status' do
-    worker.can_do(:long_running_sends_status)
     client_job = client.submit_job(:long_running_sends_status, 'data')
-    worker_job = worker.grab_job
-    worker.send_work_status(worker_job.job_handle, 0.5)
 
-    # XXX: get_status should read _until_ status_res
+    worker.can_do(:long_running_sends_status)
+    worker.grab_job.tap do |job|
+      worker.send_work_status(job.job_handle, 0.5)
+    end
+
     status_packet = client.packet_stream.read
 
     client_status = client.get_status(client_job.job_handle)
@@ -91,12 +93,13 @@ describe "a worker's client" do
   end
 
   it 'updates status to 100% complete' do
-    worker.can_do(:long_running_sends_status)
     client_job = client.submit_job(:long_running_sends_status, 'data')
-    worker_job = worker.grab_job
-    worker.send_work_status(worker_job.job_handle, 1)
 
-    # XXX: get_status should read _until_ status_res
+    worker.can_do(:long_running_sends_status)
+    worker.grab_job.tap do |job|
+      worker.send_work_status(job.job_handle, 1)
+    end
+
     status_packet = client.packet_stream.read
 
     client_status = client.get_status(client_job.job_handle)
@@ -105,11 +108,12 @@ describe "a worker's client" do
   end
 
   it 'sends data on completion' do
-    worker.can_do(:long_running_will_complete)
     client_job = client.submit_job(:long_running_will_complete, 'data')
 
-    worker_job = worker.grab_job
-    worker.send_work_complete(worker_job.job_handle, 'complete')
+    worker.can_do(:long_running_will_complete)
+    worker.grab_job.tap do |job|
+      worker.send_work_complete(job.job_handle, 'complete')
+    end
 
     work_complete = client.packet_stream.read
 
@@ -117,11 +121,12 @@ describe "a worker's client" do
   end
 
   it 'sends failure notices' do
-    worker.can_do(:long_running_will_fail)
     client_job = client.submit_job(:long_running_will_fail, 'data')
 
-    worker_job = worker.grab_job
-    worker.send_work_fail(worker_job.job_handle)
+    worker.can_do(:long_running_will_fail)
+    worker.grab_job.tap do |job|
+      worker.send_work_fail(job.job_handle)
+    end
 
     work_fail = client.packet_stream.read
 
@@ -130,12 +135,12 @@ describe "a worker's client" do
 
   it 'sends exception notices' do
     client.set_server_option('exceptions')
-
-    worker.can_do(:long_running_will_raise)
     client_job = client.submit_job(:long_running_will_raise, 'data')
 
-    worker_job = worker.grab_job
-    worker.send_work_exception(worker_job.job_handle, 'oh no!')
+    worker.can_do(:long_running_will_raise)
+    worker.grab_job.tap do |job|
+      worker.send_work_exception(job.job_handle, 'oh no!')
+    end
 
     work_exception = client.packet_stream.read
 
@@ -143,11 +148,12 @@ describe "a worker's client" do
   end
 
   it 'sends work data' do
-    worker.can_do(:long_running_will_send_data)
     client_job = client.submit_job(:long_running_will_send_data, 'data')
 
-    worker_job = worker.grab_job
-    worker.send_work_data(worker_job.job_handle, 'woo!')
+    worker.can_do(:long_running_will_send_data)
+    worker.grab_job.tap do |job|
+      worker.send_work_data(job.job_handle, 'woo!')
+    end
 
     work_data = client.packet_stream.read
 
@@ -155,11 +161,12 @@ describe "a worker's client" do
   end
 
   it 'sends work warnings' do
-    worker.can_do(:long_running_will_warn)
     client_job = client.submit_job(:long_running_will_warn, 'data')
 
-    worker_job = worker.grab_job
-    worker.send_work_warning(worker_job.job_handle, 'watch out!')
+    worker.can_do(:long_running_will_warn)
+    worker.grab_job.tap do |job|
+      worker.send_work_warning(job.job_handle, 'watch out!')
+    end
 
     work_warning = client.packet_stream.read
 
