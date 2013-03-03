@@ -1,18 +1,25 @@
-module Geary
-  class TextStream
+require 'forwardable'
 
-    attr_reader :connection
+module Geary
+  class TextProtocolStream
+    extend Forwardable
+
+    def_delegators :io, :close, :closed?
+
+    attr_reader :io
 
     def initialize(options = {})
-      @connection = options.fetch(:connection)
+      @io = options.fetch(:io)
     end
 
     def write(command)
-      connection.on_writeable { |w| w.puts(command) }
+      IO::select([], [io])
+      io.puts(command)
     end
 
     def read
-      connection.on_readable { |r| r.gets }
+      IO::select([io])
+      io.gets
     end
 
     def drain

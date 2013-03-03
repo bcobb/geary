@@ -1,13 +1,12 @@
 require 'virtus'
 require 'socket'
 
-require_relative 'client'
-require_relative 'worker_client'
+require_relative 'client/binary_protocol'
+require_relative 'worker/binary_protocol'
 require_relative 'admin_client'
 require_relative 'uuid_generator'
-require_relative 'connection'
-require_relative 'gearman_packet_stream'
-require_relative 'text_stream'
+require_relative 'binary_protocol_stream'
+require_relative 'text_protocol_stream'
 require_relative 'packet_type_repository'
 require_relative 'packet/all'
 
@@ -17,46 +16,44 @@ module Geary
 
     attribute :host, String, :default => "localhost"
     attribute :port, Integer, :default => 4730
+    attribute :packet_type_repository, PacketTypeRepository,
+      :default => :standard_packet_type_repository
 
     def client(options = {})
-      socket = ::TCPSocket.new(host, port)
+      socket = open_socket(host, port)
 
       unique_id_generator = options.fetch(:unique_id_generator) do
         UUIDGenerator.new
       end
 
-      packet_type_repository = standard_packet_type_repository
-      packet_stream = GearmanPacketStream.new(
-        :connection => Connection.new(:io => socket),
+      connection = BinaryProtocolStream.new(
+        :io => socket,
         :packet_type_repository => packet_type_repository
       )
 
-      Client.new(
-        :packet_stream => packet_stream,
+      Client::BinaryProtocol.new(
+        :connection => connection,
         :unique_id_generator => unique_id_generator
       )
     end
 
     def worker_client
-      socket = ::TCPSocket.new(host, port)
+      socket = open_socket(host, port)
 
-      packet_type_repository = standard_packet_type_repository
-      packet_stream = GearmanPacketStream.new(
-        :connection => Connection.new(:io => socket),
+      connection = BinaryProtocolStream.new(
+        :io => socket,
         :packet_type_repository => packet_type_repository
       )
 
-      WorkerClient.new(:packet_stream => packet_stream)
+      Worker::BinaryProtocol.new(:connection => connection)
     end
 
     def admin_client
-      socket = ::TCPSocket.new(host, port)
+      socket = open_socket(host, port)
 
-      packet_stream = TextStream.new(
-        :connection => Connection.new(:io => socket)
-      )
+      connection = TextProtocolStream.new(:io => socket)
 
-      AdminClient.new(:packet_stream => packet_stream)
+      AdminClient.new(:connection => connection)
     end
 
     def standard_packet_type_repository
@@ -70,6 +67,14 @@ module Geary
 
           repository
         end
+    end
+
+    def open_socket(host, port)
+      begin
+        ::TCPSocket.new(host, port)
+      rescue Errno::ECONNREFUSED
+        abort "Could not connect to the gearman server at #{host}:#{port}"
+      end
     end
 
   end

@@ -85,7 +85,7 @@ describe "a worker's client" do
       worker.send_work_status(job.job_handle, 0.5)
     end
 
-    status_packet = client.packet_stream.read
+    status_packet = client.connection.read_response
 
     client_status = client.get_status(client_job.job_handle)
 
@@ -100,7 +100,7 @@ describe "a worker's client" do
       worker.send_work_status(job.job_handle, 1)
     end
 
-    status_packet = client.packet_stream.read
+    status_packet = client.connection.read_response
 
     client_status = client.get_status(client_job.job_handle)
 
@@ -115,7 +115,7 @@ describe "a worker's client" do
       worker.send_work_complete(job.job_handle, 'complete')
     end
 
-    work_complete = client.packet_stream.read
+    work_complete = client.connection.read_response
 
     expect(work_complete.data).to eql('complete')
   end
@@ -128,7 +128,7 @@ describe "a worker's client" do
       worker.send_work_fail(job.job_handle)
     end
 
-    work_fail = client.packet_stream.read
+    work_fail = client.connection.read_response
 
     expect(work_fail).to be_a(Geary::Packet::WorkFailResponse)
   end
@@ -142,7 +142,7 @@ describe "a worker's client" do
       worker.send_work_exception(job.job_handle, 'oh no!')
     end
 
-    work_exception = client.packet_stream.read
+    work_exception = client.connection.read_response
 
     expect(work_exception.data).to eql('oh no!')
   end
@@ -155,7 +155,7 @@ describe "a worker's client" do
       worker.send_work_data(job.job_handle, 'woo!')
     end
 
-    work_data = client.packet_stream.read
+    work_data = client.connection.read_response
 
     expect(work_data.data).to eql('woo!')
   end
@@ -168,7 +168,7 @@ describe "a worker's client" do
       worker.send_work_warning(job.job_handle, 'watch out!')
     end
 
-    work_warning = client.packet_stream.read
+    work_warning = client.connection.read_response
 
     expect(work_warning.data).to eql('watch out!')
   end
@@ -194,7 +194,7 @@ describe "a worker's client" do
     worker.can_do_timeout(:timeout_ability, 1)
     worker.grab_job
 
-    status_packet = client.packet_stream.read
+    status_packet = client.connection.read_response
 
     expect(status_packet).to be_a(Geary::Packet::WorkFailResponse)
   end

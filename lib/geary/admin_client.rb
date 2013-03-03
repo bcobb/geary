@@ -7,17 +7,17 @@ module Geary
   class AdminClient
     extend Forwardable
 
-    def_delegator :packet_stream, :connection
+    def_delegator :connection, :close
 
-    attr_reader :packet_stream
+    attr_reader :connection
 
     def initialize(options = {})
-      @packet_stream = options.fetch(:packet_stream)
+      @connection = options.fetch(:connection)
     end
 
     def workers
-      packet_stream.write('workers')
-      output = packet_stream.drain.split("\n")
+      connection.write('workers')
+      output = connection.drain.split("\n")
 
       output.map do |line|
         segments = line.split(':')
@@ -38,8 +38,8 @@ module Geary
     end
 
     def status
-      packet_stream.write('status')
-      output = packet_stream.drain.split("\n")
+      connection.write('status')
+      output = connection.drain.split("\n")
 
       output.map do |line|
         function_name, total, running, workers = line.split("\t")
@@ -54,8 +54,8 @@ module Geary
     end
 
     def server_version
-      packet_stream.write('version')
-      packet_stream.read.strip
+      connection.write('version')
+      connection.read.strip
     end
 
     def shutdown(graceful = false)
@@ -65,7 +65,7 @@ module Geary
         command << 'graceful'
       end
 
-      packet_stream.write(command.join(' '))
+      connection.write(command.join(' '))
     end
 
   end

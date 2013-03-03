@@ -1,5 +1,5 @@
 require_relative 'standard'
-require_relative '../magic'
+require_relative 'magic'
 
 module Geary
   module Packet
