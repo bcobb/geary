@@ -173,15 +173,21 @@ describe "a worker's client" do
     expect(work_warning.data).to eql('watch out!')
   end
 
-  it 'set its client id' do
+  def with_cushion(&block)
+    Array.new(5) { block.call ; sleep 0.001 }.compact.first
+  end
+
+  it 'sets its client id' do
     random = Time.now.to_i.to_s + rand.to_s
     id = "worker-with-id-#{random}"
 
     worker.set_client_id(id)
     worker.can_do(:hi_mom)
 
-    observed_worker = admin_client.workers.find do |worker|
-      worker.client_id == id
+    observed_worker = with_cushion do
+      admin_client.workers.find do |worker|
+        worker.client_id == id
+      end
     end
 
     expect(observed_worker).to_not be_nil
