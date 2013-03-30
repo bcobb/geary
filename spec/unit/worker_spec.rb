@@ -21,7 +21,10 @@ describe 'a worker' do
       include BackgroundWorks
     end
 
-    client.should_receive(:submit_job_bg).with('TestWorker', [1, 2, 3])
+    client.should_receive(:submit_job_bg).with(
+      'default',
+      { :class => 'TestWorker', :args => [1, 2, 3] }
+    )
 
     TestWorker.perform_async(1, 2, 3)
   end
@@ -39,13 +42,16 @@ describe 'a worker' do
       at = Time.now + 10
 
       client.should_receive(:submit_job_sched).with(
-        'TestWorker',
+        'default',
         at.strftime('%-M').to_i,
         at.strftime('%-H').to_i,
         at.strftime('%-d').to_i,
         at.strftime('%-m').to_i,
         (at.strftime('%w').to_i - 1), 
-        [1, 2, 3]
+        {
+          :class => 'TestWorker',
+          :args => [1, 2, 3]
+        }
       )
 
       TestWorker.perform_in(at, 1, 2, 3)
@@ -53,23 +59,26 @@ describe 'a worker' do
 
     it 'schedules a job a number of seconds in the future otherwise' do
       client = double("Geary::WorkerClient")
-      ScheduledWorks = Geary::Worker.new(:client => client)
+      ScheduledSoonWorks = Geary::Worker.new(:client => client)
 
       class TestWorker
-        include ScheduledWorks
+        include ScheduledSoonWorks
       end
 
       at = 10
       future = Time.now + 10
 
       client.should_receive(:submit_job_sched).with(
-        'TestWorker',
+        'default',
         future.strftime('%-M').to_i,
         future.strftime('%-H').to_i,
         future.strftime('%-d').to_i,
         future.strftime('%-m').to_i,
-        (future.strftime('%w').to_i - 1), 
-        [1, 2, 3]
+        (future.strftime('%w').to_i - 1),
+        {
+          :class => 'TestWorker',
+          :args => [1, 2, 3]
+        }
       )
 
       TestWorker.perform_in(at, 1, 2, 3)

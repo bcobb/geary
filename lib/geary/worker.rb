@@ -17,7 +17,11 @@ module Geary
       attr_accessor :_gearman_client
 
       def perform_async(*args)
-        _gearman_client.submit_job_bg(_function_name, args)
+        job_arguments = {
+          :class => self.name,
+          :args => args
+        }
+        _gearman_client.submit_job_bg(_function_name, job_arguments)
       end
 
       def perform_in(interval, *args)
@@ -35,7 +39,11 @@ module Geary
         weekday = date_args.pop
         date_args.push(weekday - 1) # Gearman claims Monday = 0
 
-        arguments = date_args + [args]
+        job_arguments = {
+          :class => self.name,
+          :args => args
+        }
+        arguments = date_args + [job_arguments]
 
         _gearman_client.submit_job_sched(_function_name, *arguments)
       end
@@ -44,7 +52,7 @@ module Geary
       private
 
       def _function_name
-        self.name
+        'default'
       end
 
     end
