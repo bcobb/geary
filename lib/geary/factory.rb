@@ -2,7 +2,7 @@ require 'virtus'
 require 'socket'
 
 require_relative 'client/binary_protocol'
-require_relative 'worker/binary_protocol'
+require_relative 'worker_client/binary_protocol'
 require_relative 'admin_client'
 require_relative 'uuid_generator'
 require_relative 'binary_protocol_stream'
@@ -45,7 +45,7 @@ module Geary
         :packet_type_repository => packet_type_repository
       )
 
-      Worker::BinaryProtocol.new(:connection => connection)
+      WorkerClient::BinaryProtocol.new(:connection => connection)
     end
 
     def admin_client

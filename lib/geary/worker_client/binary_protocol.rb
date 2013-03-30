@@ -2,7 +2,7 @@ require 'forwardable'
 require 'timeout'
 
 module Geary
-  module Worker
+  module WorkerClient
     class BinaryProtocol
       extend Forwardable
 
