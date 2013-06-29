@@ -3,3 +3,4 @@ tmp/aruba
 bin
 .bundle
 coverage
+tmp/*.rb

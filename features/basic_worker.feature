@@ -3,7 +3,7 @@ Feature: Basic Worker
   Geary runs a process which processes background jobs.
 
   Scenario: run `gearup` with no additional configuration
-    Given the following worker exists at "lib/hard_worker.rb":
+    Given a file named "lib/hard_worker.rb" with:
       """
       require 'geary/worker'
 
@@ -18,7 +18,7 @@ Feature: Basic Worker
 
       end
       """
-    And my application looks like:
+    And a file named "app.rb" with:
       """
         require 'lib/hard_worker'
 
