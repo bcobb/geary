@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.description     = "An attempt to replace gearman-ruby"
 
-  s.files           = Dir['{lib/**/*}'] + %w(README.md)
+  s.files           = Dir['{lib/**/*}'] + %w(README.markdown)
   s.require_path    = 'lib'
   s.extra_rdoc_files = ['README.markdown']
   s.test_files      = Dir['spec/**/*_spec.rb']
@@ -23,4 +23,7 @@ Gem::Specification.new do |s|
   s.homepage        = 'https://github.com/bcobb/geary'
 
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'cucumber'
+  s.add_development_dependency 'aruba'
+  s.add_development_dependency 'cane'
 end
