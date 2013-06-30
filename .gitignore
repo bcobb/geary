@@ -1,6 +1,5 @@
 Gemfile.lock
 tmp/aruba
-bin
 .bundle
 coverage
 tmp/*.rb
