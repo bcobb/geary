@@ -8,7 +8,7 @@ Feature: Basic Worker
       require 'geary/worker'
 
       class HardWorker
-        include Geary::Worker
+        extend Geary::Worker
 
         def perform(file_location)
           File.open(file_location, 'w+') do |f|
@@ -20,7 +20,7 @@ Feature: Basic Worker
       """
     And a file named "app.rb" with:
       """
-        require 'lib/hard_worker'
+        require_relative 'lib/hard_worker'
 
         def main(args)
           file_location, _ = Array(args)
@@ -30,9 +30,9 @@ Feature: Basic Worker
 
         main(ARGV.dup)
       """
+    When I successfully run `ruby app.rb out`
     And gearup is running
-    When I run my application with "tmp/out"
-    Then the file "tmp/out" should contain:
+    Then the file "out" should contain:
       """
       HardWorker was here
       """

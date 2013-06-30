@@ -1,4 +1,3 @@
 --color
--r ./spec/support/simplecov.rb
 -I spec
 -I lib/geary
