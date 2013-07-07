@@ -25,5 +25,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'cucumber'
   s.add_development_dependency 'aruba'
-  s.add_development_dependency 'cane'
+  s.add_development_dependency 'gearmand_control'
+  s.add_development_dependency 'gearman_admin_client'
 end

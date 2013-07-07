@@ -1,4 +1,6 @@
-require 'timeout'
+require 'gearmand_control'
+require 'gearman_admin_client'
+
 require 'gearman/client/channel'
 
 module Gearman
@@ -6,35 +8,22 @@ module Gearman
 
     describe Channel do
 
-      it 'submits background jobs' do
-        server = Thread.new { `gearmand` }
+      before do
+        @gearmand = GearmandControl.new(4730)
+        @gearmand.start
+      end
 
-        channel = Channel.new('localhost:4730')
+      after do
+        @gearmand.stop
+      end
+
+      it 'submits background jobs' do
+        admin = GearmanAdminClient.new(@gearmand.address)
+        channel = Channel.new(@gearmand.address)
+
         job_created = channel.submit_job_bg('gearman.channel.test')
 
-        status = []
-
-        socket = nil
-
-        Timeout.timeout(1) do
-          begin
-            socket = TCPSocket.new('localhost', 4730)
-          rescue Errno::ECONNREFUSED
-            retry
-          end
-        end
-
-        IO::select([], [socket])
-
-        socket.puts("status")
-        IO::select([socket])
-
-        while line = socket.gets
-          break if line.chop == '.'
-          status << line
-        end
-
-        expect(status.join("\n")).to include('gearman.channel.test')
+        expect(admin.status.map(&:name)).to include('gearman.channel.test')
       end
 
     end
