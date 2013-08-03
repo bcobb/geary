@@ -31,8 +31,8 @@ Feature: Basic Worker
         main(ARGV.dup)
       """
     When I successfully run `ruby app.rb out`
-    And gearup is running
-    Then the file "out" should contain:
+    And geary runs with the flags "-rhard_worker -Ilib"
+    Then the file "out" should eventually contain:
       """
       HardWorker was here
       """

@@ -1,81 +1,72 @@
 require 'socket'
 require 'timeout'
+require 'forwardable'
+
+require 'celluloid'
+
+require 'geary/option_parser'
+require 'geary/performer'
+require 'geary/manager'
 
 module Geary
+
   class CLI
+    extend Forwardable
 
-    TmpError = Class.new(RuntimeError)
+    Error = Class.new(StandardError)
+    Shutdown = Class.new(Error)
 
-    def initialize(argv, stdin=STDIN, stdout=STDOUT, stderr=STDERR,
-                   kernel=Kernel)
+    attr_reader :configuration, :internal_signal_queue, :external_signal_queue
+
+    def initialize(argv, stdout = STDOUT, stderr = STDERR, kernel = Kernel,
+                   pipe = IO.pipe)
       @argv = argv
-      @stdin = stdin
       @stdout = stdout
-      @stderr = stderr
+      @stdout = stderr
       @kernel = kernel
+      @internal_signal_queue, @external_signal_queue = pipe
+      @configuration = OptionParser.new.parse(@argv)
     end
 
     def execute!
-      begin
-        Timeout.timeout(1, TmpError) do
-          socket = TCPSocket.new('localhost', 4730)
-
-          write_to(socket) do
-            can_do_body = ['Geary.default'].join("\0")
-            can_do_header = ["\0REQ", 1, can_do_body.size].pack('a4NN')
-
-            can_do_header + can_do_body
-          end
-
-          write_to(socket) do
-            grab_job_body = [].join("\0")
-            grab_job_header = ["\0REQ", 9, grab_job_body.size].pack('a4NN')
-
-            grab_job_header + grab_job_body
-          end
-
-          read_from(socket) do |packet|
-            if packet[:type] == 11
-              payload = JSON.load(packet[:arguments].last)
-              class_name = payload['class']
-              require class_name.gsub(/([a-z])([A-Z])/, '\1_\2').downcase
-              klass = Object.const_get(class_name)
-              worker = klass.new
-              worker.perform(*payload['args'])
-            end
-          end
+      %w(INT TERM).each do |signal|
+        trap signal do
+          external_signal_queue.puts(signal)
         end
-      rescue TmpError
-        @stderr.puts "Out of time"
-        @kernel.exit(1)
       end
 
-      @kernel.exit(0)
-    end
+      munge_environment_given(configuration)
 
-    def write_to(socket, &content)
-      IO.select([], [socket])
-      socket.write(content.call)
-    end
+      manager = Manager.new(configuration)
+      manager.start_managing
 
-    def read_from(socket, &handler)
-      IO.select([socket])
-      magic, type, args_length = socket.read(12).unpack('a4NN')
+      begin
+        loop do
+          IO.select([internal_signal_queue])
+          signal = internal_signal_queue.gets.strip
 
-      if args_length > 0
-        IO.select([socket])
-        arguments = socket.read(args_length).split("\0")
-      else
-        arguments = []
+          handle(signal)
+        end
+      rescue Shutdown
+        manager.async.stop_managing
+
+        manager.wait(:shutdown)
+
+        @kernel.exit(0)
       end
+    end
 
-      packet = {
-        magic: magic,
-        type: type,
-        arguments: arguments
-      }
+    def handle(signal)
+      if %w(INT TERM).include?(signal)
+        raise Shutdown
+      end
+    end
 
-      handler.call(packet)
+    private
+
+    def munge_environment_given(configuration)
+      $:.concat(configuration.included_paths)
+      configuration.required_files.each { |file| require file }
     end
 
   end
