@@ -9,6 +9,7 @@ When(/^geary runs with the flags "(.*?)"$/) do |flags|
 
   in_current_dir do
     process = ChildProcess.build(*Shellwords.shellwords(detect_ruby("geary #{flags}")))
+    process.io.inherit!
 
     @geary_processes << process
 

@@ -24,6 +24,10 @@ module Geary
         parser.on('-I', '--include PATHS', Array) do |paths|
           configuration.included_paths = paths
         end
+
+        parser.on('-c', '--concurrency NUMBER', 'number of concurrent tasks to run per server') do |number|
+          configuration.concurrency = Integer(number)
+        end
       end
     end
 

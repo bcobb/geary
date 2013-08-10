@@ -35,18 +35,6 @@ module Geary
     attribute :concurrency, Integer, default: ->(*) { Celluloid.cores }, lazy: true
     attribute :included_paths, Array, default: %w(.)
     attribute :required_files, Array, default: []
-    attribute :diagnostic_message_destination, Object, default: ->(*) { $stdout },
-      lazy: true
-    attribute :error_message_destination, Object, default: ->(*) { $stderr },
-      lazy: true
-
-    def diagnostic
-      @diagnostic ||= MonoLogger.new(diagnostic_message_destination)
-    end
-
-    def error_reporter
-      @error_reporter ||= MonoLogger.new(error_message_destination)
-    end
 
   end
 end

@@ -1,60 +1,83 @@
-require 'socket'
-require 'celluloid'
+require 'celluloid/io'
+require 'json'
+require 'timeout'
 
 module Geary
 
-  HEADER_FORMAT = 'a4NN'
-  NULL_BYTE = "\0"
-  REQ = [NULL_BYTE, "REQ"].join
+  unless defined? HEADER_FORMAT
+    HEADER_FORMAT = 'a4NN'
+    HEADER_SIZE = 12
+    NULL_BYTE = "\0"
+    REQ = [NULL_BYTE, "REQ"].join
+  end
 
   class Performer
-    include Celluloid
+    include Celluloid::IO
 
-    Error = Class.new(RuntimeError)
-    ClosedConnection = Class.new(Error)
-    UnexpectedPacket = Class.new(Error)
-    IncompleteWrite = Class.new(Error)
-    IncompleteRead = Class.new(Error)
-    Shutdown = Class.new(Error)
+    unless defined? Error
+      Error = Class.new(RuntimeError)
+      NoConnection = Class.new(Error)
+      UnexpectedPacket = Class.new(Error)
+      IncompleteWrite = Class.new(Error)
+      IncompleteRead = Class.new(Error)
+      Shutdown = Class.new(Error)
 
-    CAN_DO = 1
-    PRE_SLEEP = 4
-    NOOP = 6
-    GRAB_JOB = 9
-    JOB_ASSIGN = 11
-    WORK_COMPLETE = 13
+      CAN_DO = 1
+      PRE_SLEEP = 4
+      NOOP = 6
+      GRAB_JOB = 9
+      NO_JOB = 10
+      JOB_ASSIGN = 11
+      WORK_COMPLETE = 13
+      WORK_EXCEPTION = 25
+    end
 
     attr_reader :address
 
-    def initialize(address, manager_signals)
+    finalizer :disconnect
+
+    def initialize(address)
       @address = address
-      @manager_signals = manager_signals
     end
 
     def start
-      @socket = TCPSocket.new(address.host, address.port)
+      begin
+        @socket = TCPSocket.new(address.host, address.port)
+      rescue Errno::ECONNREFUSED
+        raise NoConnection, "could not connect to #{address}"
+      end
 
       request(CAN_DO, ['Geary.default'])
-      request(PRE_SLEEP)
+      offer_to_work
 
       loop do
         _, type, _ = read_packet
 
         if type == NOOP
-          _, type, arguments = grab_job
-
-          if type == JOB_ASSIGN
-            handle, _, data = arguments
-
-            perform(handle, data)
-          elsif type == NO_JOB
-            next
-          else
-            unexpected! type, [JOB_ASSIGN, NO_JOB]
-          end
+          offer_to_work
         else
           unexpected! type, [NOOP]
         end
+      end
+    end
+
+    def offer_to_work
+      _, type, arguments = grab_job
+
+      handle_work_offer(type, arguments)
+    end
+
+    def handle_work_offer(type, arguments)
+      if type == JOB_ASSIGN
+        handle, _, data = arguments
+
+        perform(handle, data)
+
+        offer_to_work
+      elsif type == NO_JOB
+        request(PRE_SLEEP)
+      else
+        unexpected! type, [JOB_ASSIGN, NO_JOB]
       end
     end
 
@@ -65,27 +88,34 @@ module Geary
     end
 
     def perform(handle, data)
-      json = JSON.parse(data)
+      job = JSON.parse(data)
+      job_result = nil
 
-      worker_class_name = json['class']
-      worker_class = ::Object.const_get(worker_class_name)
-      worker = worker_class.new
+      ::Object.const_get(job['class']).new
+
       begin
-        worker.perform(*json['args'])
-      rescue Exception => exception
-        $stdout.puts exception
-        $stdout.puts exception.message
-        $stdout.puts exception.backtrace.join("\n")
+        job_result = worker.perform(*job['args'])
+      rescue => error
+        request(WORK_EXCEPTION, [handle, error.message])
+      else
+        request(WORK_COMPLETE, [handle, String(job_result)])
       end
-
-      request(WORK_COMPLETE, [handle, ''])
     end
 
     def request(type, arguments = [])
       body = arguments.join(NULL_BYTE)
       header = [REQ, type, body.size].pack(HEADER_FORMAT)
+      packet = header + body
 
-      write_packet(header + body)
+      @socket.wait_writable
+      length_written = @socket.write(packet)
+
+      if length_written != packet.length
+        lengths = [packet.length, lengths]
+        message = "expected to write %d bytes, but only read %d" % lengths
+
+        raise IncompleteWrite, message
+      end
     end
 
     def unexpected!(type, expected)
@@ -93,7 +123,7 @@ module Geary
     end
 
     def read_packet
-      read(12) do |header|
+      read(HEADER_SIZE) do |header|
         magic, type, length = header.unpack(HEADER_FORMAT)
         arguments = []
 
@@ -108,23 +138,12 @@ module Geary
     def read(length, &handler)
       return unless length > 0
 
-      ready, _ = @socket.class.select([@socket, @manager_signals])
-
-      if ready.include?(@manager_signals)
-        signal = @manager_signals.gets.strip
-
-        @socket.close
-
-        raise Shutdown, "shutting down"
-      end
+      @socket.wait_readable
+      data = @socket.read(length)
 
       if @socket.eof?
-        @socket.close
-
-        raise ClosedConnection, "lost connection to #{@address}"
+        raise NoConnection, "lost connection to #{@address}"
       else
-        data = @socket.read(length)
-
         if data.length == length
           handler.call(data)
         else
@@ -136,22 +155,9 @@ module Geary
       end
     end
 
-    def stop
-      begin
-        @socket.close
-      rescue ClosedConnection
-      end
-    end
-
-    def write_packet(packet)
-      @socket.class.select([], [@socket])
-      length_written = @socket.write(packet)
-
-      if length_written != packet.length
-        lengths = [packet.length, lengths]
-        message = "expected to write %d bytes, but only read %d" % lengths
-
-        raise IncompleteWrite, message
+    def disconnect
+      if @socket
+        @socket.close unless @socket.closed?
       end
     end
 

@@ -13,8 +13,7 @@ module Geary
   class CLI
     extend Forwardable
 
-    Error = Class.new(StandardError)
-    Shutdown = Class.new(Error)
+    Shutdown = Class.new(StandardError) unless defined? Shutdown
 
     attr_reader :configuration, :internal_signal_queue, :external_signal_queue
 
@@ -37,8 +36,8 @@ module Geary
 
       munge_environment_given(configuration)
 
-      manager = Manager.new(configuration)
-      manager.start_managing
+      manager = Manager.new(configuration: configuration)
+      manager.start
 
       begin
         loop do
@@ -48,7 +47,7 @@ module Geary
           handle(signal)
         end
       rescue Shutdown
-        manager.async.stop_managing
+        manager.async.stop
 
         manager.wait(:shutdown)
 

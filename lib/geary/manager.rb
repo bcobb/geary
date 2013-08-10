@@ -4,19 +4,18 @@ module Geary
   class Manager
     include Celluloid
 
+    attr_reader :configuration, :performers
+
     trap_exit :restart_performer
 
-    attr_reader :configuration
-
-    def initialize(configuration)
+    def initialize(configuration: configuration, performer_type: Performer)
       @configuration = configuration
       @performers = []
       @server_addresses_by_performer = {}
-      @queues_by_performer = {}
-      @shutting_down = false
+      @performer_type = performer_type
     end
 
-    def start_managing
+    def start
       configuration.server_addresses.each do |server_address|
         configuration.concurrency.times do
           start_performer(server_address)
@@ -24,20 +23,18 @@ module Geary
       end
     end
 
-    def stop_managing
-      @performers.each { |performer| current_actor.unlink(performer) }
-
-      shutting_down!
-
-      @queues_by_performer.each do |performer, queue|
-        queue.puts('INT')
+    def stop
+      current_actor.links.each do |linked_performer|
+        current_actor.unlink(linked_performer)
       end
 
-      living_performers = @performers.select(&:alive?)
-      living_performers.each(&:terminate)
+      @performers.select!(&:alive?)
+      @performers.each(&:terminate)
 
-      signal(:shutdown)
+      signal(:stop)
     end
+
+    private
 
     def restart_performer(performer, reason)
       if String(reason).empty?
@@ -55,31 +52,19 @@ module Geary
         raise UnexpectedRestart, "we don't know about Performer #{_id}"
       end
 
-      @queues_by_performer.delete(_id)
       server_address = @server_addresses_by_performer.delete(_id)
 
       wants_server_address.call(server_address)
     end
-    private :forget_performer
 
     def start_performer(server_address)
-      performer_reads_from, manager_writes_to = IO.pipe
-      performer = Performer.new(server_address, performer_reads_from)
+      performer = @performer_type.new(server_address)
 
       @performers << performer
       @server_addresses_by_performer[performer.object_id] = server_address
-      @queues_by_performer[performer.object_id] = manager_writes_to
 
       current_actor.link performer
       performer.async.start
-    end
-
-    def shutting_down?
-      @shutting_down
-    end
-
-    def shutting_down!
-      @shutting_down = true
     end
 
   end
