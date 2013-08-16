@@ -8,7 +8,13 @@ module Geary
       payload = { class: self, args: args }
 
       # TODO: configurable queue name and payload serialization
-      gearman_channel.submit_job_bg('Geary.default', payload.to_json)
+      begin
+        gearman_channel.submit_job_bg('Geary.default', payload.to_json)
+      rescue => e
+        gearman_channel.reconnect
+
+        retry
+      end
     end
 
     protected

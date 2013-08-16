@@ -21,6 +21,7 @@ module Geary
       IncompleteWrite = Class.new(Error)
       IncompleteRead = Class.new(Error)
       Shutdown = Class.new(Error)
+      TimeoutError = Class.new(Error)
 
       CAN_DO = 1
       PRE_SLEEP = 4
@@ -41,44 +42,52 @@ module Geary
     end
 
     def start
+      connect
+      announce_ability
+
+      loop do
+        _, type, arguments = grab_job
+
+        if type == JOB_ASSIGN
+          handle, _, data = arguments
+
+          perform(handle, data)
+        elsif type == NO_JOB
+          pre_sleep
+
+          _, type, _ = read_packet
+
+          if type != NOOP
+            unexpected! type, [NOOP]
+          end
+        else
+          unexpected! type, [JOB_ASSIGN, NO_JOB]
+        end
+      end
+    end
+
+    def disconnect
+      if @socket
+        @socket.close unless @socket.closed?
+      end
+    end
+
+    private
+
+    def connect
       begin
         @socket = TCPSocket.new(address.host, address.port)
       rescue Errno::ECONNREFUSED
         raise NoConnection, "could not connect to #{address}"
       end
+    end
 
+    def announce_ability
       request(CAN_DO, ['Geary.default'])
-      offer_to_work
-
-      loop do
-        _, type, _ = read_packet
-
-        if type == NOOP
-          offer_to_work
-        else
-          unexpected! type, [NOOP]
-        end
-      end
     end
 
-    def offer_to_work
-      _, type, arguments = grab_job
-
-      handle_work_offer(type, arguments)
-    end
-
-    def handle_work_offer(type, arguments)
-      if type == JOB_ASSIGN
-        handle, _, data = arguments
-
-        perform(handle, data)
-
-        offer_to_work
-      elsif type == NO_JOB
-        request(PRE_SLEEP)
-      else
-        unexpected! type, [JOB_ASSIGN, NO_JOB]
-      end
+    def pre_sleep
+      request(PRE_SLEEP)
     end
 
     def grab_job
@@ -91,9 +100,9 @@ module Geary
       job = JSON.parse(data)
       job_result = nil
 
-      ::Object.const_get(job['class']).new
-
       begin
+        worker = ::Object.const_get(job['class']).new
+
         job_result = worker.perform(*job['args'])
       rescue => error
         request(WORK_EXCEPTION, [handle, error.message])
@@ -107,7 +116,6 @@ module Geary
       header = [REQ, type, body.size].pack(HEADER_FORMAT)
       packet = header + body
 
-      @socket.wait_writable
       length_written = @socket.write(packet)
 
       if length_written != packet.length
@@ -123,41 +131,27 @@ module Geary
     end
 
     def read_packet
-      read(HEADER_SIZE) do |header|
-        magic, type, length = header.unpack(HEADER_FORMAT)
-        arguments = []
+      header = read(HEADER_SIZE)
+      magic, type, length = header.unpack(HEADER_FORMAT)
 
-        read(length) do |body|
-          arguments = body.split(NULL_BYTE)
-        end
+      body = read(length)
+      arguments = String(body).split(NULL_BYTE)
 
-        [magic, type, arguments]
-      end
+      [magic, type, arguments]
     end
 
-    def read(length, &handler)
+    def read(length)
       return unless length > 0
 
-      @socket.wait_readable
       data = @socket.read(length)
 
-      if @socket.eof?
-        raise NoConnection, "lost connection to #{@address}"
+      if data.length == length
+        data
       else
-        if data.length == length
-          handler.call(data)
-        else
-          lengths = [length, data.length]
-          message = "expected to read %d bytes, but only read %d" % lengths
+        lengths = [length, data.length]
+        message = "expected to read %d bytes, but only read %d" % lengths
 
-          raise IncompleteRead, message
-        end
-      end
-    end
-
-    def disconnect
-      if @socket
-        @socket.close unless @socket.closed?
+        raise IncompleteRead, message
       end
     end
 
