@@ -23,7 +23,7 @@ Feature: Basic Worker
         require_relative 'lib/hard_worker'
 
         def main(*args)
-          file_location, _ = args
+          file_location, _ = args.flatten
 
           HardWorker.perform_async(file_location)
         end
@@ -31,7 +31,7 @@ Feature: Basic Worker
         main(ARGV.dup)
       """
     When I successfully run `ruby app.rb out`
-    And geary runs with the flags "-rhard_worker -Ilib -c1"
+    And geary runs with the flags "-rhard_worker -Ilib"
     Then the file "out" should eventually contain:
       """
       HardWorker was here

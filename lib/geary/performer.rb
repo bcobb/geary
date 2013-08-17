@@ -105,10 +105,18 @@ module Geary
 
         job_result = worker.perform(*job['args'])
       rescue => error
-        request(WORK_EXCEPTION, [handle, error.message])
+        work_exception(handle, error.message)
       else
-        request(WORK_COMPLETE, [handle, String(job_result)])
+        work_complete(handle, job_result)
       end
+    end
+
+    def work_exception(handle, message)
+      request(WORK_EXCEPTION, [handle, message])
+    end
+
+    def work_complete(handle, result)
+      request(WORK_COMPLETE, [handle, String(result)])
     end
 
     def request(type, arguments = [])

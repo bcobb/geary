@@ -49,7 +49,7 @@ module Geary
       rescue Shutdown
         manager.async.stop
 
-        manager.wait(:shutdown)
+        manager.wait(:stop)
 
         @kernel.exit(0)
       end

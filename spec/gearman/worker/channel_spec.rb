@@ -258,6 +258,7 @@ module Gearman
     end
 
     example 'when attempting to do two things at once' do
+      pending
       submit_job_bg(gearmand.address, 'something')
 
       socket = TCPSocket.new('localhost', 4730)

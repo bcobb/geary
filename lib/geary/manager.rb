@@ -1,4 +1,5 @@
 require 'celluloid'
+require 'geary/performer'
 
 module Geary
   class Manager
