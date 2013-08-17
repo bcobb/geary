@@ -25,10 +25,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'celluloid'
   s.add_runtime_dependency 'celluloid-io'
   s.add_runtime_dependency 'virtus', '1.0.0.beta0'
-  s.add_runtime_dependency 'mono_logger'
 
   s.add_development_dependency 'rspec'
-  s.add_development_dependency 'rspec-spies'
   s.add_development_dependency 'cucumber'
   s.add_development_dependency 'aruba'
   s.add_development_dependency 'gearmand_control'

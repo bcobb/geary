@@ -136,6 +136,8 @@ module Gearman
   describe 'the channel' do
     include Timeout
 
+    before { pending }
+
     def submit_job_bg(server_address, *function_names)
       host, port = server_address.split(':')
       socket = TCPSocket.new(host, port)

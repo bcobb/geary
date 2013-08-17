@@ -7,6 +7,10 @@ module Gearman
     attribute :host, String
     attribute :port, Integer
 
+    def to_sym
+      to_s.to_sym
+    end
+
     def to_s
       return @_to_s if @_to_s
 

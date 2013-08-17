@@ -8,7 +8,7 @@ module WithTolerance
     expectation_error = nil
 
     begin
-      Timeout.timeout(1, Intolerant) do
+      Timeout.timeout(5, Intolerant) do
         begin
           block.call
         rescue RSpec::Expectations::ExpectationNotMetError => e

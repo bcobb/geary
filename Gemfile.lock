@@ -4,7 +4,6 @@ PATH
     geary (0.0.1)
       celluloid
       celluloid-io
-      mono_logger
       virtus (= 1.0.0.beta0)
 
 GEM
@@ -44,7 +43,6 @@ GEM
     gherkin (2.12.0)
       multi_json (~> 1.3)
     ice_nine (0.8.0)
-    mono_logger (1.1.0)
     multi_json (1.7.7)
     nio4r (0.4.6)
     rspec (2.13.0)
@@ -55,8 +53,6 @@ GEM
     rspec-expectations (2.13.0)
       diff-lcs (>= 1.1.3, < 2.0)
     rspec-mocks (2.13.1)
-    rspec-spies (2.1.4)
-      rspec (~> 2.0)
     timers (1.1.0)
     virtus (1.0.0.beta0)
       abstract_type (~> 0.0.5)
@@ -74,4 +70,3 @@ DEPENDENCIES
   gearmand_control
   geary!
   rspec
-  rspec-spies

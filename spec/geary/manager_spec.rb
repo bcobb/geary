@@ -5,11 +5,13 @@ require 'geary/manager'
 
 require 'support/fake_performer'
 require 'support/with_tolerance'
+require 'support/without_logging'
 
 module Geary
 
   describe Manager do
     include WithTolerance
+    include WithoutLogging
 
     let(:configuration) do
       configuration = Configuration.new(
@@ -43,36 +45,40 @@ module Geary
     describe 'performer supervision' do
 
       it 'restarts performers when they die' do
-        manager = Manager.new(configuration: configuration,
-                              performer_type: FakePerformer)
-        manager.start
+        without_logging do
+          manager = Manager.new(configuration: configuration,
+                                performer_type: FakePerformer)
+          manager.start
 
-        imminently_dead_performers = manager.performers
-        imminently_dead_performers.map(&:async).each(&:die)
+          imminently_dead_performers = manager.performers
+          imminently_dead_performers.map(&:async).each(&:die)
 
-        with_tolerance do
-          expect(imminently_dead_performers.count(&:alive?)).to eql(0)
-        end
+          with_tolerance do
+            expect(imminently_dead_performers.count(&:alive?)).to eql(0)
+          end
 
-        with_tolerance do
-          expect(manager.links.count).to eql(2)
+          with_tolerance do
+            expect(manager.links.count).to eql(2)
+          end
         end
       end
 
       it 'forgets performers if they die without a reason' do
-        manager = Manager.new(configuration: configuration,
-                              performer_type: FakePerformer)
-        manager.start
+        without_logging do
+          manager = Manager.new(configuration: configuration,
+                                performer_type: FakePerformer)
+          manager.start
 
-        forgettable_performers = manager.performers
-        forgettable_performers.map(&:async).each(&:die_quietly)
+          forgettable_performers = manager.performers
+          forgettable_performers.map(&:async).each(&:die_quietly)
 
-        with_tolerance do
-          expect(forgettable_performers.count(&:alive?)).to eql(0)
-        end
+          with_tolerance do
+            expect(forgettable_performers.count(&:alive?)).to eql(0)
+          end
 
-        with_tolerance do
-          expect(manager.links.count).to eql(0)
+          with_tolerance do
+            expect(manager.links.count).to eql(0)
+          end
         end
       end
 

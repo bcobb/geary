@@ -1,5 +1,5 @@
 require 'json'
-require_relative '../gearman/client/channel'
+require 'gearman/client'
 
 module Geary
   module Worker
@@ -9,9 +9,9 @@ module Geary
 
       # TODO: configurable queue name and payload serialization
       begin
-        gearman_channel.submit_job_bg('Geary.default', payload.to_json)
+        gearman_client.submit_job_bg('Geary.default', payload.to_json)
       rescue => e
-        gearman_channel.reconnect
+        gearman_client.reconnect
 
         retry
       end
@@ -19,14 +19,12 @@ module Geary
 
     protected
 
-    def use_gearman_channel(channel)
-      @gearman_channel = channel
+    def use_gearman_client(*args)
+      @gearman_client = Gearman::Client.new(*args)
     end
 
-    def gearman_channel
-      @gearman_channel || use_gearman_channel(
-        Gearman::Client::Channel.new('localhost:4730')
-      )
+    def gearman_client
+      @gearman_client || use_gearman_client('localhost:4730')
     end
 
   end
