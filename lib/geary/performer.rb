@@ -37,10 +37,6 @@ module Geary
       end
     end
 
-    def disconnect
-      @gearman.disconnect
-    end
-
     def idle
       @gearman.pre_sleep
     end

@@ -1,13 +1,9 @@
-require 'forwardable'
 require 'gearman/address/serializer'
 require 'gearman/connection'
 require 'gearman/packet'
 
 module Gearman
   class Worker
-    extend Forwardable
-
-    def_delegator :@connection, :disconnect
 
     def initialize(address)
       @address = Address::Serializer.load(address)
@@ -35,6 +31,10 @@ module Gearman
 
     def work_complete(handle, data)
       @connection.write(Packet::WORK_COMPLETE.new(handle: handle, data: data))
+    end
+
+    def disconnect
+      @connection.disconnect if @connection.alive?
     end
 
     def with_connection

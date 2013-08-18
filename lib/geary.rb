@@ -1,4 +1,4 @@
-require 'geary/performer'
+require 'geary/worker'
 
 module Geary
 end
