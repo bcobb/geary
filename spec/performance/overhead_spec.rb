@@ -14,6 +14,7 @@ describe 'running 20K jobs' do
   end
 
   it 'takes some amount of time' do
+    pending "Unpend to run"
     admin = GearmanAdminClient.new('localhost:4730')
 
     configuration = Geary::Configuration.new(concurrency: 25)

@@ -6,11 +6,14 @@ module Gearman
   class Connection
     include Celluloid::IO
 
+    finalizer :disconnect
+
     unless defined? IncompleteReadError
       IncompleteReadError = Class.new(Gearman::Error)
       IncompleteWriteError = Class.new(Gearman::Error)
       NoConnectionError = Class.new(Gearman::Error)
       UnexpectedPacketError = Class.new(Gearman::Error)
+      ServerError = Class.new(Gearman::Error)
 
       NULL_BYTE = "\0"
       REQ = [NULL_BYTE, "REQ"].join
@@ -52,7 +55,13 @@ module Gearman
       arguments = String(body).split(NULL_BYTE)
 
       @repository.load(type).new(arguments).tap do |packet|
-        expect! packet, expected_packet_types
+        if packet.is_a?(Packet::ERROR)
+          message = "server sent error #{packet.error_code}: #{packet.text}"
+
+          raise ServerError, message
+        end
+
+        verify packet, expected_packet_types
       end
     end
 
@@ -92,7 +101,7 @@ module Gearman
       @socket.nil?
     end
 
-    def expect!(packet, valid_packet_types)
+    def verify(packet, valid_packet_types)
       return if valid_packet_types.empty?
 
       unless valid_packet_types.include?(packet.class)

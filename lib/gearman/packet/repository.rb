@@ -16,6 +16,7 @@ module Gearman
         store(11, 'JOB_ASSIGN', [:handle, :function_name, :data])
         store(13, 'WORK_COMPLETE', [:handle, :data])
         store(18, 'SUBMIT_JOB_BG', [:function_name, :unique_id, :data])
+        store(19, 'ERROR', [:error_code, :text])
         store(25, 'WORK_EXCEPTION', [:handle, :data])
       end
 

@@ -26,21 +26,15 @@ module Geary
     end
 
     def stop
-      current_actor.links.each do |linked_performer|
-        current_actor.unlink(linked_performer)
-      end
+      @performers.select(&:alive?).each(&:terminate)
 
-      @performers.select!(&:alive?)
-      @performers.each(&:terminate)
-
-      signal(:stop)
+      after(0) { signal(:done) }
     end
 
     private
 
     def restart_performer(performer, reason)
-      if String(reason).empty?
-      else
+      if String(reason).size > 0
         forget_performer(performer) do |server_address|
           start_performer(server_address)
         end

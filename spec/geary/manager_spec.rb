@@ -111,13 +111,10 @@ module Geary
       it 'signals that it has stopped' do
         manager = Manager.new(configuration: configuration,
                               performer_type: FakePerformer)
-        manager.start
-
+        manager.async.start
         manager.async.stop
 
-        with_tolerance do
-          expect(manager.wait :stop).to be_nil
-        end
+        expect(manager.wait :done).to be_nil
       end
 
     end

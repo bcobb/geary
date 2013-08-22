@@ -16,11 +16,11 @@ class FakePerformer
   end
 
   def die
-    raise "I was told to die."
+    after(0) { raise "I was told to die." }
   end
 
   def die_quietly
-    raise
+    after(0) { raise }
   end
 
   alias :started? :started
