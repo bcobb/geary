@@ -1,13 +1,17 @@
+require 'celluloid'
 require 'gearman/address/serializer'
 require 'gearman/connection'
 require 'gearman/packet'
 
 module Gearman
   class Worker
+    include Celluloid
+
+    trap_exit :reconnect
+    finalizer :disconnect
 
     def initialize(address)
       @address = Address::Serializer.load(address)
-      @connection_configuration = ->(address) { Connection.new(address) }
       build_connection
     end
 
@@ -34,27 +38,18 @@ module Gearman
     end
 
     def disconnect
-      @connection.disconnect if @connection.alive?
-    end
-
-    def with_connection
-      yield @connection
-    end
-
-    def configure_connection(&configuration)
-      @connection_configuration = configuration
-      reconnect
+      if @connection
+        @connection.terminate if @connection.alive?
+      end
     end
 
     def build_connection
-      @connection = @connection_configuration.call(@address)
+      @connection = Connection.new(@address)
+      current_actor.link @connection
     end
 
-    def reconnect
-      if @connection.alive?
-        @connection.terminate
-      end
-
+    def reconnect(actor, reason)
+      disconnect
       build_connection
     end
 

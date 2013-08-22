@@ -24,13 +24,12 @@ class FakeServer
 
   def run
     loop do
+      after(0) { signal :accept }
       async.handle_connection @server.accept
     end
   end
 
   def handle_connection(socket)
-    _, host, port = socket.peeraddr
-
     header = socket.read(Gearman::Connection::HEADER_SIZE)
     magic, type, length = header.unpack(Gearman::Connection::HEADER_FORMAT)
     arguments = socket.read(length).split(Gearman::Connection::NULL_BYTE)

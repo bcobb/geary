@@ -8,11 +8,12 @@ module Gearman
   describe Connection do
     include WithoutLogging
    
-    let!(:address) { Gearman::Address.new(host: '127.0.0.1', port: 4730) }
+    let!(:address) { Address.new(host: '127.0.0.1', port: 4730) }
     let!(:server) { FakeServer.new(address) }
 
     before do
       server.async.run
+      server.wait :accept
     end
 
     after do

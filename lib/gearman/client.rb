@@ -1,4 +1,4 @@
-require 'forwardable'
+require 'celluloid'
 require 'gearman/address/serializer'
 require 'gearman/connection'
 require 'gearman/packet'
@@ -6,14 +6,14 @@ require 'securerandom'
 
 module Gearman
   class Client
-    extend Forwardable
+    include Celluloid
 
-    def_delegator :@connection, :disconnect
+    finalizer :disconnect
+    trap_exit :reconnect
 
     def initialize(address)
       @address = Address::Serializer.load(address)
       @generate_unique_id = SecureRandom.method(:uuid)
-      @connection_configuration = ->(address) { Connection.new(address) }
       build_connection
     end
 
@@ -28,24 +28,23 @@ module Gearman
       @connection.async.next
     end
 
-    def build_connection
-      @connection = @connection_configuration.call(@address)
-    end
-
-    def configure_connection(&configuration)
-      @connection_configuration = configuration
-      reconnect
-    end
-
-    def generate_unique_id_with(&methodology)
+    def generate_unique_id_with(methodology)
       @generate_unique_id = methodology
     end
 
-    def reconnect
-      if @connection.alive?
-        @connection.terminate
+    def disconnect
+      if @connection
+        @connection.terminate if @connection.alive?
       end
+    end
 
+    def build_connection
+      @connection = Connection.new(@address)
+      current_actor.link @connection
+    end
+
+    def reconnect(actor, reason)
+      disconnect
       build_connection
     end
 

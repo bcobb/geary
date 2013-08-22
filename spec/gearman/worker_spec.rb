@@ -4,6 +4,10 @@ module Gearman
 
   describe Worker do
 
+    before do
+      pending 'a nice way to inject an Actor double'
+    end
+
     it 'expects a NOOP after it sends PRE_SLEEP' do
       connection = double('Connection')
       connection.stub(:write)

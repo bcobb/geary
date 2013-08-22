@@ -12,17 +12,12 @@ module Geary
     finalizer :disconnect
     trap_exit :reconnect
 
-    def_delegator :@gearman, :disconnect
-
     def initialize(address)
-      @gearman = Gearman::Worker.new(address)
+      @address = address
+      build_connection
     end
 
     def start
-      @gearman.with_connection do |connection|
-        current_actor.link connection
-      end
-
       @gearman.can_do('Geary.default')
 
       loop do
@@ -50,14 +45,26 @@ module Geary
 
         job_result = worker.perform(*job['args'])
       rescue => error
-        @gearman.work_exception(packet.handle, error.message)
+        @gearman.async.work_exception(packet.handle, error.message)
       else
-        @gearman.work_complete(packet.handle, job_result)
+        @gearman.async.work_complete(packet.handle, job_result)
+      end
+    end
+
+    def disconnect
+      if @gearman
+        @gearman.terminate if @gearman.alive?
       end
     end
 
     def reconnect(actor, reason)
-      @gearman.reconnect
+      disconnect
+      build_connection
+    end
+
+    def build_connection
+      @gearman = Gearman::Worker.new(@address)
+      current_actor.link @gearman
     end
 
   end
