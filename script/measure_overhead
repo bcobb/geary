@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+
+require 'gearman_admin_client'
+require 'gearmand_control'
+
+require 'geary/manager'
+require 'geary/worker'
+
+class TestWorker
+  extend Geary::Worker
+
+  def perform
+  end
+end
+
+def main
+  admin = GearmanAdminClient.new('localhost:4730')
+  jobs = -> { admin.status.first.jobs_in_queue }
+
+  configuration = Geary::Configuration.new(concurrency: 25)
+  manager = Geary::Manager.new(configuration: configuration)
+
+  n = 20_000
+  n.times { TestWorker.perform_async }
+
+  if jobs.() != n
+    message = [
+      "Expected to measuer overhead of #{n} jobs, would instead",
+      "measure overhead of #{jobs.()} jobs."
+    ]
+
+    puts message.join(' ')
+  end
+
+  start = Time.now
+  stop = Time.now
+  stop_candidate = Time.now
+
+  manager.async.start
+
+  loop do
+    stop_candidate = Time.now
+    sleep 10
+
+    if admin.status.first.jobs_in_queue.zero?
+      stop = Time.now
+      break
+    end
+  end
+
+  puts "Between #{stop_candidate.to_f - start.to_f} and #{stop.to_f - start.to_f}"
+end
+
+main
