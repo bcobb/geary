@@ -6,10 +6,6 @@ require 'securerandom'
 
 module Gearman
   class Client
-    include Celluloid
-
-    finalizer :disconnect
-    trap_exit :reconnect
 
     def initialize(address)
       @address = Address::Serializer.load(address)
@@ -40,10 +36,9 @@ module Gearman
 
     def build_connection
       @connection = Connection.new(@address)
-      current_actor.link @connection
     end
 
-    def reconnect(actor, reason)
+    def reconnect
       disconnect
       build_connection
     end
