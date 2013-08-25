@@ -1,6 +1,6 @@
 require 'nestegg'
 
-module Gearman
+module Geary
   class Error < StandardError
     include Nestegg::NestingException
   end

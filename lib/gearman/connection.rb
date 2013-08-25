@@ -92,8 +92,8 @@ module Gearman
     def connect
       begin
         @socket = TCPSocket.new(@address.host, @address.port)
-      rescue Errno::ECONNREFUSED
-        raise NoConnectionError, "could not connect to #{@address}"
+      rescue => error
+        raise NoConnectionError.new("could not connect to #{@address}", error)
       end
     end
 

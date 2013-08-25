@@ -1,5 +1,6 @@
 require 'json'
 require 'gearman/client'
+require 'geary/error'
 
 module Geary
   module Worker
@@ -13,11 +14,11 @@ module Geary
       # TODO: configurable queue name and payload serialization
       begin
         gearman_client.submit_job_bg('Geary.default', payload.to_json)
-      rescue => e
+      rescue
         attempts += 1
 
         if attempts > failure_threshold
-          raise
+          raise Error
         else
           gearman_client.reconnect
           retry

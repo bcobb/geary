@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'celluloid'
   s.add_runtime_dependency 'celluloid-io'
   s.add_runtime_dependency 'virtus', '1.0.0.beta0'
+  s.add_runtime_dependency 'nestegg'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'cucumber'
