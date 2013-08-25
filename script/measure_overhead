@@ -42,7 +42,7 @@ def main
 
   loop do
     stop_candidate = Time.now
-    sleep 10
+    sleep 5
 
     if admin.status.first.jobs_in_queue.zero?
       stop = Time.now
@@ -54,3 +54,4 @@ def main
 end
 
 main
+sleep
