@@ -12,6 +12,7 @@ module Gearman
 
     def initialize(address)
       @address = Address::Serializer.load(address)
+      configure_connection Connection.method(:new_link)
       build_connection
     end
 
@@ -44,13 +45,17 @@ module Gearman
     end
 
     def build_connection
-      @connection = Connection.new(@address)
-      current_actor.link @connection
+      @connection = @connect.call(@address)
     end
 
-    def reconnect(actor, reason)
+    def reconnect(*_)
       disconnect
       build_connection
+    end
+
+    def configure_connection(connection_routine)
+      @connect = connection_routine
+      reconnect
     end
 
   end

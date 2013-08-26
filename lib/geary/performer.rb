@@ -57,7 +57,7 @@ module Geary
       end
     end
 
-    def reconnect(actor, reason)
+    def reconnect(*_)
       disconnect
       build_connection
     end
