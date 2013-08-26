@@ -14,7 +14,7 @@ module Geary
 
     def initialize(address)
       @address = address
-      build_connection
+      configure_connection Gearman::Worker.method(:new_link)
     end
 
     def start
@@ -28,6 +28,8 @@ module Geary
           perform(packet)
         when Gearman::Packet::NO_JOB
           idle
+        else
+          break
         end
       end
     end
@@ -63,8 +65,12 @@ module Geary
     end
 
     def build_connection
-      @gearman = Gearman::Worker.new(@address)
-      current_actor.link @gearman
+      @gearman = @connect.call(@address)
+    end
+
+    def configure_connection(connection_routine)
+      @connect = connection_routine
+      reconnect
     end
 
   end

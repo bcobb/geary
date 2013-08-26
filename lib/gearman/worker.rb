@@ -13,7 +13,6 @@ module Gearman
     def initialize(address)
       @address = Address::Serializer.load(address)
       configure_connection Connection.method(:new_link)
-      build_connection
     end
 
     def can_do(ability)
