@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-irb -Ilib -rgeary
+irb -I"lib" -r"geary" -r"geary/manager"

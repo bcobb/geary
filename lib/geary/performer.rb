@@ -59,7 +59,7 @@ module Geary
       end
     end
 
-    def reconnect(*_)
+    def reconnect(actor, reason)
       disconnect
       build_connection
     end
@@ -70,7 +70,7 @@ module Geary
 
     def configure_connection(connection_routine)
       @connect = connection_routine
-      reconnect
+      reconnect(current_actor, nil)
     end
 
   end
