@@ -16,18 +16,33 @@ class TestWorker
 end
 
 def main
-  admin = GearmanAdminClient.new('localhost:4730')
-  jobs = -> { admin.status.first.jobs_in_queue }
+  jobs = -> {
+    admin = GearmanAdminClient.new('localhost:4730')
 
-  configuration = Geary::Configuration.new(concurrency: 25)
+    begin
+      admin.status.first.jobs_in_queue
+    rescue Exception
+      'unknown'
+    ensure
+      admin.disconnect
+    end
+  }
+
+  concurrency = Integer(ENV['CONCURRENCY'] || 25)
+  configuration = Geary::Configuration.new(concurrency: concurrency)
   manager = Geary::Manager.new(configuration: configuration)
 
-  n = 20_000
+  n = Integer(ENV['JOBS'] || 20_000)
+
+  puts "> Seeding #{n} jobs."
+
   n.times { TestWorker.perform_async }
+
+  puts "> Seeded #{jobs.()} jobs."
 
   if jobs.() != n
     message = [
-      "Expected to measuer overhead of #{n} jobs, would instead",
+      "Expected to measure overhead of #{n} jobs, would instead",
       "measure overhead of #{jobs.()} jobs."
     ]
 
@@ -38,15 +53,22 @@ def main
   stop = Time.now
   stop_candidate = Time.now
 
+  puts "> Starting Manager"
+
   manager.async.start
 
   loop do
     stop_candidate = Time.now
     sleep 5
 
-    if admin.status.first.jobs_in_queue.zero?
+    jobs_left = jobs.()
+
+    if jobs_left == 0
       stop = Time.now
       break
+    else
+      elapsed = Time.now.to_f - start.to_f
+      puts "> #{jobs_left} jobs left. #{elapsed.round(2)} seconds elapsed"
     end
   end
 
