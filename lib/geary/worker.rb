@@ -6,23 +6,10 @@ module Geary
   module Worker
 
     def perform_async(*args)
-      payload = { class: self, args: args }
+      payload = payload_for(args)
 
-      attempts = 0
-      failure_threshold = 1
-
-      # TODO: configurable queue name and payload serialization
-      begin
-        gearman_client.submit_job_bg('Geary.default', payload.to_json)
-      rescue
-        attempts += 1
-
-        if attempts > failure_threshold
-          raise Error
-        else
-          gearman_client.reconnect
-          retry
-        end
+      operation do |gearman|
+        gearman.submit_job_bg('Geary.default', payload.to_json)
       end
     end
 
@@ -34,6 +21,28 @@ module Geary
 
     def gearman_client
       @gearman_client || use_gearman_client('localhost:4730')
+    end
+
+    def payload_for(args)
+      payload = { class: self, args: args }
+    end
+
+    def operation(&block)
+      attempts = 0
+      failure_threshold = 1
+
+      begin
+        block.call(gearman_client)
+      rescue
+        attempts += 1
+
+        if attempts > failure_threshold
+          raise Error
+        else
+          gearman_client.reconnect
+          retry
+        end
+      end
     end
 
   end

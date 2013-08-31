@@ -6,18 +6,23 @@ module Geary
   class Manager
     include Celluloid
 
+    JITTER = 0.01 unless defined? JITTER
+
     attr_reader :configuration, :performers
 
-    trap_exit :restart_performer
+    trap_exit :performer_crashed
 
     def initialize(configuration: configuration, performer_type: Performer)
       @configuration = configuration
       @performers = []
+      @crashes = []
       @server_addresses_by_performer = {}
       @performer_type = performer_type
     end
 
     def start
+      async.monitor_crashes
+
       configuration.server_addresses.each do |server_address|
         configuration.concurrency.times do
           start_performer(server_address)
@@ -33,10 +38,18 @@ module Geary
 
     private
 
-    def restart_performer(performer, reason)
+    def monitor_crashes
+      every(configuration.failure_monitor_interval) do 
+        @crashes.reject! do |server_address|
+          momentarily { start_performer(server_address) }
+        end
+      end
+    end
+
+    def performer_crashed(performer, reason)
       if String(reason).size > 0
         forget_performer(performer) do |server_address|
-          start_performer(server_address)
+          @crashes.unshift(server_address)
         end
       end
     end
@@ -54,13 +67,17 @@ module Geary
     end
 
     def start_performer(server_address)
-      performer = @performer_type.new(server_address)
+      performer = @performer_type.new_link(server_address)
 
       @performers << performer
       @server_addresses_by_performer[performer.object_id] = server_address
 
-      current_actor.link performer
       performer.async.start
+    end
+
+    def momentarily(&action)
+      after(rand + JITTER, &action)
+      true
     end
 
   end

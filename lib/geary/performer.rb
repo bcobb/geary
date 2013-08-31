@@ -27,15 +27,11 @@ module Geary
         when Gearman::Packet::JOB_ASSIGN
           perform(packet)
         when Gearman::Packet::NO_JOB
-          idle
+          @gearman.pre_sleep
         else
           break
         end
       end
-    end
-
-    def idle
-      @gearman.pre_sleep
     end
 
     def perform(packet)
