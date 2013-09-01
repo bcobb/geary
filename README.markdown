@@ -52,3 +52,25 @@ Processing jobs from multiple servers is a matter of passing in comma-delimited 
 ```
 geary -s localhost:4730,localhost:4731
 ```
+
+Classes which extend themselves with `Geary::Worker` submit background jobs to a Gearman server running on `localhost:4730` by default, but can be configured to submit jobs to multiple servers like so:
+
+```ruby
+require 'geary/worker'
+
+class OverheadWorker
+  extend Geary::Worker
+
+  use_gearman_client 'localhost:4730', 'localhost:4731'
+
+  def perform ; end
+end
+```
+
+The following code will submit four total jobs, two to each server, alternating between servers:
+
+```ruby
+4.times { OverheadWorker.perform_async }
+```
+
+That is, `OverheadWorker` selects servers using a Round-Robin process. If its connection to a server fails, it attempts to repair the connection, and adds that server to the end of its list of servers.

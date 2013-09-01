@@ -7,16 +7,20 @@ require 'gearman_admin_client'
 require 'geary/manager'
 require 'geary/worker'
 
+$addresses = ['localhost:4730', 'localhost:4731']
+
 class TestWorker
   extend Geary::Worker
+
+  use_gearman_client(*$addresses)
 
   def perform
   end
 end
 
 def main
-  jobs = -> {
-    admin = GearmanAdminClient.new('localhost:4730')
+  jobs = ->(address) {
+    admin = GearmanAdminClient.new(address)
 
     begin
       admin.status.first.jobs_in_queue
@@ -28,7 +32,10 @@ def main
   }
 
   concurrency = Integer(ENV['CONCURRENCY'] || 25)
-  configuration = Geary::Configuration.new(concurrency: concurrency)
+  configuration = Geary::Configuration.new(
+    concurrency: concurrency,
+    server_addresses: $addresses
+  )
   manager = Geary::Manager.new(configuration: configuration)
 
   n = Integer(ENV['JOBS'] || 20_000)
@@ -37,16 +44,7 @@ def main
 
   n.times { TestWorker.perform_async }
 
-  puts "> Seeded #{jobs.()} jobs."
-
-  if jobs.() != n
-    message = [
-      "Expected to measure overhead of #{n} jobs, would instead",
-      "measure overhead of #{jobs.()} jobs."
-    ]
-
-    puts message.join(' ')
-  end
+  puts "> Seeded jobs."
 
   start = Time.now
   stop = Time.now
@@ -60,14 +58,16 @@ def main
     stop_candidate = Time.now
     sleep 5
 
-    jobs_left = jobs.()
+    jobs_left = $addresses.map { |a| jobs.(a) }.reduce(&:+)
 
     if jobs_left == 0
       stop = Time.now
       break
     else
       elapsed = Time.now.to_f - start.to_f
-      puts "> #{jobs_left} jobs left. #{elapsed.round(2)} seconds elapsed"
+      $addresses.each do |a|
+        puts "> #{jobs.(a)} jobs left at #{a}. #{elapsed.round(2)} seconds elapsed."
+      end
     end
   end
 

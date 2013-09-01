@@ -6,11 +6,17 @@ require 'securerandom'
 
 module Gearman
   class Client
+    include Celluloid
 
-    def initialize(address)
-      @address = Address::Serializer.load(address)
+    trap_exit :reconnect
+    finalizer :disconnect
+
+    def initialize(*addresses)
+      @addresses = addresses.map(&Address::Serializer.method(:load))
       @generate_unique_id = SecureRandom.method(:uuid)
-      build_connection
+      @addresses_by_connection_id = {}
+      @connections = []
+      build_connections
     end
 
     def submit_job_bg(function_name, data)
@@ -20,8 +26,10 @@ module Gearman
         data: data
       )
 
-      @connection.write(packet)
-      @connection.async.next
+      with_connection do |connection|
+        connection.write(packet)
+        connection.async.next
+      end
     end
 
     def generate_unique_id_with(methodology)
@@ -29,18 +37,37 @@ module Gearman
     end
 
     def disconnect
-      if @connection
-        @connection.terminate if @connection.alive?
+      @connections.select(&:alive?).each(&:terminate)
+    end
+
+    def build_connections
+      @addresses.each do |address|
+        build_connection(address)
       end
     end
 
-    def build_connection
-      @connection = Connection.new(@address)
+    def build_connection(address)
+      connection = Connection.new_link(address)
+      @addresses_by_connection_id[connection.object_id] = address
+      @connections << connection
     end
 
-    def reconnect
-      disconnect
-      build_connection
+    def reconnect(connection = nil, _ = nil)
+      connection ||= current_connection
+      connection.terminate if connection.alive?
+      @connections.delete(connection)
+      address = @addresses_by_connection_id[connection.object_id]
+      build_connection(address)
+    end
+
+    def with_connection(&action)
+      action.call(current_connection).tap do
+        @connections.rotate!
+      end
+    end
+
+    def current_connection
+      @connections.first
     end
 
   end
