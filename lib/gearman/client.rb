@@ -1,8 +1,8 @@
 require 'celluloid'
-require 'gearman/address/serializer'
 require 'gearman/connection'
 require 'gearman/packet'
 require 'securerandom'
+require 'uri'
 
 module Gearman
   class Client
@@ -12,7 +12,7 @@ module Gearman
     finalizer :disconnect
 
     def initialize(*addresses)
-      @addresses = addresses.map(&Address::Serializer.method(:load))
+      @addresses = addresses.map(&Kernel.method(:URI))
       @generate_unique_id = SecureRandom.method(:uuid)
       @addresses_by_connection_id = {}
       @connections = []

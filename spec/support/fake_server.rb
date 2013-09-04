@@ -1,5 +1,4 @@
 require 'celluloid/io'
-require 'gearman/address/serializer'
 
 class FakeServer
   include Celluloid::IO
@@ -9,7 +8,6 @@ class FakeServer
   attr_reader :packets_read
 
   def initialize(address)
-    address = Gearman::Address::Serializer.load(address)
     @server = TCPServer.new(address.host, address.port)
     @packets_read = []
     @next_response = nil

@@ -1,14 +1,14 @@
+require 'gearman/connection'
 require 'support/fake_server'
 require 'support/without_logging'
-require 'gearman/address'
-require 'gearman/connection'
+require 'uri'
 
 module Gearman
 
   describe Connection do
     include WithoutLogging
    
-    let!(:address) { Address.new(host: '127.0.0.1', port: 4730) }
+    let!(:address) { URI('gearman://127.0.0.1:4730') }
     let!(:server) { FakeServer.new(address) }
 
     before do

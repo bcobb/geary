@@ -1,10 +1,11 @@
 require 'gearman/client'
 require 'support/fake_server'
+require 'uri'
 
 module Gearman
   describe Client do
 
-    let!(:address) { Address.new(host: '127.0.0.1', port: 4730) }
+    let!(:address) { URI('gearman://127.0.0.1:4730') }
     let!(:gearmand) { FakeServer.new(address) }
 
     before do

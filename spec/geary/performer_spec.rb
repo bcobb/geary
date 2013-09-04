@@ -1,7 +1,7 @@
-require 'gearman/address/serializer'
 require 'geary/performer'
 require 'support/actor_double'
 require 'support/without_logging'
+require 'uri'
 
 module Geary
   describe Performer do
@@ -9,7 +9,7 @@ module Geary
     include WithoutLogging
 
     let(:address) do
-      Gearman::Address::Serializer.load('localhost:4730')
+      URI('gearman://localhost:4730')
     end
 
     let(:gearman) { actor_double }

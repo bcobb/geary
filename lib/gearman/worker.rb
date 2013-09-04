@@ -1,7 +1,7 @@
 require 'celluloid'
-require 'gearman/address/serializer'
 require 'gearman/connection'
 require 'gearman/packet'
+require 'uri'
 
 module Gearman
   class Worker
@@ -11,7 +11,7 @@ module Gearman
     finalizer :disconnect
 
     def initialize(address)
-      @address = Address::Serializer.load(address)
+      @address = URI(address)
       configure_connection Connection.method(:new_link)
     end
 
