@@ -55,9 +55,10 @@ module Gearman
     def reconnect(connection = nil, _ = nil)
       connection ||= current_connection
       connection.terminate if connection.alive?
-      @connections.delete(connection)
-      address = @addresses_by_connection_id[connection.object_id]
-      build_connection(address)
+
+      forget_connection(connection) do |address|
+        build_connection(address)
+      end
     end
 
     def with_connection(&action)
@@ -68,6 +69,11 @@ module Gearman
 
     def current_connection
       @connections.first
+    end
+
+    def forget_connection(connection)
+      @connections.delete(connection)
+      yield @addresses_by_connection_id[connection.object_id]
     end
 
   end
