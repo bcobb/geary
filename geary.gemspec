@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.description     = "An attempt to replace gearman-ruby"
 
   s.files           = Dir['{lib/**/*}'] + %w(README.markdown)
+  s.bindir          = 'bin'
+  s.executables     = ['geary']
   s.require_path    = 'lib'
   s.extra_rdoc_files = ['README.markdown']
   s.test_files      = Dir['spec/**/*_spec.rb']

@@ -1,12 +1,12 @@
 require 'celluloid'
-require 'geary/configuration'
+require 'geary/error'
 require 'geary/performer'
 
 module Geary
   class Manager
     include Celluloid
 
-    JITTER = 0.01 unless defined? JITTER
+    UnexpectedRestart = Class.new(Error) unless defined? UnexpectedRestart
 
     attr_reader :configuration, :performers
 
@@ -76,7 +76,7 @@ module Geary
     end
 
     def momentarily(&action)
-      after(rand + JITTER, &action)
+      after(rand + configuration.jitter, &action)
       true
     end
 

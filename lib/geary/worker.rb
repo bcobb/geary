@@ -20,11 +20,11 @@ module Geary
     end
 
     def gearman_client
-      @gearman_client || use_gearman_client('localhost:4730')
+      @gearman_client || use_gearman_client('gearman://localhost:4730')
     end
 
     def payload_for(args)
-      payload = { class: self, args: args }
+      payload = { class: self.to_s, args: args }
     end
 
     def operation(&block)

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+echo "Running RSpec suite"
+
+rspec spec
+
+for file in `find spec -iname '*_spec.rb'`; do
+  echo "Running $file"
+  rspec $file
+done
+
+echo "Running cucumber suite."
+
+cucumber

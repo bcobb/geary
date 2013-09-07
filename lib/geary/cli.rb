@@ -1,17 +1,13 @@
 require 'socket'
-require 'timeout'
-require 'forwardable'
 
 require 'celluloid'
 
 require 'geary/option_parser'
-require 'geary/performer'
 require 'geary/manager'
 
 module Geary
 
   class CLI
-    extend Forwardable
 
     Shutdown = Class.new(StandardError) unless defined? Shutdown
 
@@ -28,6 +24,8 @@ module Geary
     end
 
     def execute!
+      Celluloid.logger.level = configuration.log_level
+
       %w(INT TERM).each do |signal|
         trap signal do
           external_signal_queue.puts(signal)
@@ -35,6 +33,7 @@ module Geary
       end
 
       munge_environment_given(configuration)
+      load_rails
 
       manager = Manager.new(configuration: configuration)
       manager.start
@@ -66,6 +65,21 @@ module Geary
     def munge_environment_given(configuration)
       $:.concat(configuration.included_paths)
       configuration.required_files.each { |file| require file }
+    end
+
+    def load_rails
+      begin
+        require 'rails'
+      rescue LoadError
+        Celluloid.logger.debug "Unable to load Rails"
+      else
+        Celluloid.logger.debug "Loading Rails"
+
+        require 'geary/railtie'
+        require 'config/environment'
+
+        ::Rails.application.eager_load!
+      end
     end
 
   end

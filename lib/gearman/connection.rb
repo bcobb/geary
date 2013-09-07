@@ -37,6 +37,8 @@ module Gearman
 
       length_written = @socket.write(serialized_packet)
 
+      debug "Wrote #{packet.inspect}"
+
       if length_written != serialized_packet.length
         lengths = [serialized_packet.length, lengths]
         message = "expected to write %d bytes, but only read %d" % lengths
@@ -55,6 +57,8 @@ module Gearman
       arguments = String(body).split(NULL_BYTE)
 
       @repository.load(type).new(arguments).tap do |packet|
+        debug "Read #{packet.inspect}"
+
         if packet.is_a?(Packet::ERROR)
           message = "server sent error #{packet.error_code}: #{packet.text}"
 
@@ -70,6 +74,8 @@ module Gearman
         @socket.close unless @socket.closed?
         @socket = nil
       end
+
+      info "Disconnected"
     end
 
     private
@@ -92,6 +98,8 @@ module Gearman
     def connect
       begin
         @socket = TCPSocket.new(@address.host, @address.port)
+
+        info "Connected"
       rescue => error
         raise NoConnectionError.new("could not connect to #{@address}", error)
       end
@@ -110,6 +118,14 @@ module Gearman
 
         raise UnexpectedPacketError, message
       end
+    end
+
+    def debug(note)
+      Celluloid.logger.debug "#{@address}: #{note}"
+    end
+
+    def info(note)
+      Celluloid.logger.info "#{@address}: #{note}"
     end
 
   end

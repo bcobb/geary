@@ -4,13 +4,13 @@ module Geary
   describe OptionParser do
 
     it 'understands comma-delimited servers to mean multiple servers' do
-      args = ['-s', 'localhost:4730,localhost:4731']
+      args = ['-s', 'gearman://localhost:4730,gearman://localhost:4731']
       parser = OptionParser.new
 
       configuration = parser.parse(args)
 
       expect(configuration.server_addresses.map(&:to_s)).
-        to eql(['localhost:4730', 'localhost:4731'])
+        to eql(['gearman://localhost:4730', 'gearman://localhost:4731'])
     end
 
   end

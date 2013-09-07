@@ -15,7 +15,7 @@ module Geary
 
     let(:configuration) do
       configuration = Configuration.new(
-        server_addresses: ['localhost:4730'],
+        server_addresses: ['gearman://localhost:4730'],
         concurrency: 2
       )
     end

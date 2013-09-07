@@ -52,7 +52,9 @@ module Gearman
       @connections << connection
     end
 
-    def reconnect(connection = nil, _ = nil)
+    def reconnect(connection = nil, reason = nil)
+      Celluloid.logger.debug(reason) if reason
+
       connection ||= current_connection
       connection.terminate if connection.alive?
 

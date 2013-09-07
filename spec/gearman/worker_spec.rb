@@ -16,7 +16,7 @@ module Gearman
       connection.stub(:write)
       connection.should_receive(:next).with(Packet::NOOP)
 
-      worker = Worker.new('localhost:4730')
+      worker = Worker.new('geraman://localhost:4730')
       worker.configure_connection ->(address) { connection }
 
       worker.pre_sleep
@@ -26,7 +26,7 @@ module Gearman
       connection.stub(:write)
       connection.should_receive(:next).with(Packet::JOB_ASSIGN, Packet::NO_JOB)
 
-      worker = Worker.new('localhost:4730')
+      worker = Worker.new('gearman://localhost:4730')
       worker.configure_connection ->(address) { connection }
 
       worker.grab_job
@@ -36,7 +36,7 @@ module Gearman
       work_exception = Packet::WORK_EXCEPTION.new(handle: 'h', data: 'd')
       connection.should_receive(:write).with(work_exception)
 
-      worker = Worker.new('localhost:4730')
+      worker = Worker.new('gearman://localhost:4730')
       worker.configure_connection ->(address) { connection }
 
       worker.work_exception('h', 'd')
@@ -46,7 +46,7 @@ module Gearman
       work_complete = Packet::WORK_COMPLETE.new(handle: 'h', data: 'd')
       connection.should_receive(:write).with(work_complete)
 
-      worker = Worker.new('localhost:4730')
+      worker = Worker.new('gearman://localhost:4730')
       worker.configure_connection ->(address) { connection }
 
       worker.work_complete('h', 'd')
@@ -57,7 +57,7 @@ module Gearman
 
       connection.should_receive(:write).with(can_do)
 
-      worker = Worker.new('localhost:4730')
+      worker = Worker.new('gearman://localhost:4730')
       worker.configure_connection ->(address) { connection }
 
       worker.can_do('ability')

@@ -7,7 +7,7 @@ require 'gearman_admin_client'
 require 'geary/manager'
 require 'geary/worker'
 
-$addresses = ['localhost:4730', 'localhost:4731']
+$addresses = ['gearman://localhost:4730', 'gearman://localhost:4731']
 
 class TestWorker
   extend Geary::Worker

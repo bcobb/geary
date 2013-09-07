@@ -28,6 +28,13 @@ module Geary
         parser.on('-c', '--concurrency NUMBER', 'number of concurrent tasks to run per server') do |number|
           configuration.concurrency = Integer(number)
         end
+
+        parser.on('-l', '--level LOG_LEVEL', 'log level (FATAL|ERROR|WARN|INFO|DEBUG)') do |level|
+          begin
+            configuration.log_level = Logger.const_get(String(level).upcase)
+          rescue NameError
+          end
+        end
       end
     end
 
