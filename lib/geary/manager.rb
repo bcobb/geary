@@ -12,12 +12,12 @@ module Geary
 
     trap_exit :performer_crashed
 
-    def initialize(configuration: configuration, performer_type: Performer)
-      @configuration = configuration
+    def initialize(options = {})
+      @configuration = options.fetch(:configuration)
+      @performer_type = options.fetch(:performer_type, Performer)
       @performers = []
       @crashes = []
       @server_addresses_by_performer = {}
-      @performer_type = performer_type
     end
 
     def start

@@ -85,13 +85,15 @@ module Gearman
 
       data = @socket.read(length)
 
-      if data.length == length
-        data
-      else
+      if data.nil?
+        raise NoConnectionError, "lost connection to #{@address}"
+      elsif data.length != length
         lengths = [length, data.length]
         message = "expected to read %d bytes, but only read %d" % lengths
 
         raise IncompleteReadError, message
+      else
+        data
       end
     end
 
