@@ -74,8 +74,6 @@ module Gearman
         @socket.close unless @socket.closed?
         @socket = nil
       end
-
-      info "Disconnected"
     end
 
     private
