@@ -16,7 +16,7 @@ module Gearman
       connection.stub(:write)
       connection.should_receive(:next).with(Packet::NOOP)
 
-      worker = Worker.new('geraman://localhost:4730')
+      worker = Worker.new('gearman://localhost:4730')
       worker.configure_connection ->(address) { connection }
 
       worker.pre_sleep
