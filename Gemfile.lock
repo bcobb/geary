@@ -1,3 +1,10 @@
+GIT
+  remote: git://github.com/bcobb/virtus-uri.git
+  revision: 3a7419d8633187ea4bd62996f8da6e4883cf6f41
+  specs:
+    virtus-uri (0.0.1)
+      virtus (< 1.0.0)
+
 PATH
   remote: .
   specs:
@@ -6,12 +13,6 @@ PATH
       celluloid-io
       nestegg
       virtus
-
-PATH
-  remote: ../virtus-uri
-  specs:
-    virtus-uri (0.0.1)
-      virtus (< 1.0.0)
 
 GEM
   remote: https://rubygems.org/

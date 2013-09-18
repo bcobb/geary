@@ -2,4 +2,4 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'virtus-uri', path: '../virtus-uri', require: false
+gem 'virtus-uri', github: 'bcobb/virtus-uri', require: false
