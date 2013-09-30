@@ -74,5 +74,3 @@ The following code will submit four total jobs, two to each server, alternating 
 ```
 
 That is, `OverheadWorker` selects servers using a Round-Robin process. If its connection to a server fails, it attempts to repair the connection, and adds that server to the end of its list of servers.
-
-## 

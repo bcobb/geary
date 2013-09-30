@@ -64,9 +64,7 @@ module Gearman
     end
 
     def with_connection(&action)
-      action.call(current_connection).tap do
-        @connections.rotate!
-      end
+      action.call(current_connection)
     end
 
     def current_connection
