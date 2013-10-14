@@ -29,6 +29,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'celluloid-io'
   s.add_runtime_dependency 'virtus'
   s.add_runtime_dependency 'nestegg'
+  s.add_runtime_dependency 'virtus-uri'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'cucumber'
