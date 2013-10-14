@@ -6,6 +6,7 @@ require 'gearman_admin_client'
 
 require 'geary/manager'
 require 'geary/worker'
+require 'geary/configuration'
 
 class TestWorker
   extend Geary::Worker
