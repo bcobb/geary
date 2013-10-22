@@ -67,10 +67,10 @@ class OverheadWorker
 end
 ```
 
-The following code will submit four total jobs, two to each server, alternating between servers:
+The following code will submit four jobs.
 
 ```ruby
 4.times { OverheadWorker.perform_async }
 ```
 
-That is, `OverheadWorker` selects servers using a Round-Robin process. If its connection to a server fails, it attempts to repair the connection, and adds that server to the end of its list of servers.
+If the server listening on port 4730 disappears midway, our gearman client will disconnect from it, and submit future jobs to the server listening on 4731. As of right now, there is no backoff behavior. If the server listening on 4731 disappears and we're still not out of jobs to submit, we'll attempt to reconnect to `localhost:4730`, potentially to our never-ending dismay.
