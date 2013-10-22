@@ -3,7 +3,7 @@ lib = File.expand_path('../lib/', __FILE__)
 $:.unshift(lib) unless $:.include?(lib)
 
 module Geary
-  VERSION = '0.0.1'
+  VERSION = '0.1.0'
 end
 
 Gem::Specification.new do |s|
@@ -14,7 +14,9 @@ Gem::Specification.new do |s|
 
   s.description     = "An attempt to replace gearman-ruby"
 
-  s.files           = Dir['{lib/**/*}'] + %w(README.markdown)
+  s.license         = 'MIT'
+
+  s.files           = Dir['{lib/**/*}'] + %w(README.markdown LICENSE)
   s.bindir          = 'bin'
   s.executables     = ['geary']
   s.require_path    = 'lib'
