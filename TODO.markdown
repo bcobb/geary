@@ -1,1 +1,0 @@
-- Packet equality with something like Virtus's equalizer
